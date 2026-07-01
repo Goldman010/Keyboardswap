@@ -1,6 +1,16 @@
+import Link from "next/link";
+import { HomeHero } from "@/components/HomeHero";
 import { EmptyListings, ListingCard } from "@/components/ListingCard";
+import { PageContainer } from "@/components/PageContainer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { supabase } from "@/lib/supabaseClient";
+import {
+  alertErrorClass,
+  alertSuccessClass,
+  pageDescriptionClass,
+  pageTitleClass,
+  primaryButtonClass,
+} from "@/lib/ui";
 import type { Listing } from "@/lib/types/listing";
 
 type HomeProps = {
@@ -13,47 +23,52 @@ export default async function Home({ searchParams }: HomeProps) {
     .from("listings")
     .select("*")
     .eq("status", "approved")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(3);
 
   const listings = (data ?? []) as Listing[];
 
   return (
     <div className="min-h-full bg-zinc-50">
-      <SiteHeader
-        subtitle="Mechanical keyboard marketplace"
-        showSubmitLink
-      />
+      <SiteHeader />
 
-      <main className="mx-auto max-w-6xl px-6 py-10">
+      <PageContainer>
         {params.submitted === "1" ? (
-          <div className="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          <div className={`${alertSuccessClass} mb-6`}>
             Listing submitted. It will appear here once approved.
           </div>
         ) : null}
 
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">
-            Listings
-          </h1>
-          <p className="mt-2 text-zinc-600">
-            Browse approved keyboards from the community.
-          </p>
-        </div>
+        <HomeHero />
 
-        {error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            Could not load listings: {error.message}
+        <section>
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <h2 className={pageTitleClass}>Latest listings</h2>
+              <p className={pageDescriptionClass}>
+                The newest approved keyboards on KeyboardSwap.
+              </p>
+            </div>
+            <Link href="/listings" className={primaryButtonClass}>
+              Browse all listings
+            </Link>
           </div>
-        ) : listings.length === 0 ? (
-          <EmptyListings />
-        ) : (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {listings.map((listing) => (
-              <ListingCard key={listing.id} listing={listing} />
-            ))}
-          </div>
-        )}
-      </main>
+
+          {error ? (
+            <div className={alertErrorClass}>
+              Could not load listings: {error.message}
+            </div>
+          ) : listings.length === 0 ? (
+            <EmptyListings message="No keyboards are currently listed." />
+          ) : (
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {listings.map((listing) => (
+                <ListingCard key={listing.id} listing={listing} />
+              ))}
+            </div>
+          )}
+        </section>
+      </PageContainer>
     </div>
   );
 }

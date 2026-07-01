@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ListingDetail } from "@/components/ListingDetail";
+import { PageContainer } from "@/components/PageContainer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { supabase } from "@/lib/supabaseClient";
+import { alertErrorClass, navLinkClass } from "@/lib/ui";
 import type { Listing } from "@/lib/types/listing";
 
 type ListingPageProps = {
@@ -22,13 +24,13 @@ export default async function ListingPage({ params }: ListingPageProps) {
   if (error) {
     return (
       <div className="min-h-full bg-zinc-50">
-        <SiteHeader maxWidth="max-w-4xl" showSubmitLink />
+        <SiteHeader />
 
-        <main className="mx-auto max-w-4xl px-6 py-10">
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <PageContainer maxWidth="max-w-4xl">
+          <div className={alertErrorClass}>
             Could not load listing: {error.message}
           </div>
-        </main>
+        </PageContainer>
       </div>
     );
   }
@@ -41,18 +43,15 @@ export default async function ListingPage({ params }: ListingPageProps) {
 
   return (
     <div className="min-h-full bg-zinc-50">
-      <SiteHeader maxWidth="max-w-4xl" showSubmitLink />
+      <SiteHeader />
 
-      <main className="mx-auto max-w-4xl px-6 py-10">
-        <Link
-          href="/listings"
-          className="mb-6 inline-block text-sm font-medium text-zinc-600 hover:text-zinc-900"
-        >
+      <PageContainer maxWidth="max-w-4xl">
+        <Link href="/listings" className={`${navLinkClass} mb-6 inline-block text-sm`}>
           ← Back to listings
         </Link>
 
         <ListingDetail listing={listing} />
-      </main>
+      </PageContainer>
     </div>
   );
 }

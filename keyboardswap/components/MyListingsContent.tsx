@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { MyListingCard } from "@/components/MyListingCard";
 import { supabase } from "@/lib/supabaseClient";
+import { alertErrorClass, cardClass, primaryButtonClass } from "@/lib/ui";
 import type { Listing } from "@/lib/types/listing";
 
 export function MyListingsContent() {
@@ -81,7 +82,7 @@ export function MyListingsContent() {
 
   if (isLoadingAuth) {
     return (
-      <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+      <div className={cardClass}>
         <p className="text-sm text-zinc-500">Checking login status...</p>
       </div>
     );
@@ -89,14 +90,11 @@ export function MyListingsContent() {
 
   if (!isAuthenticated) {
     return (
-      <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+      <div className={cardClass}>
         <p className="text-zinc-600">
           You must be logged in to view your listings.
         </p>
-        <Link
-          href="/login"
-          className="mt-4 inline-block rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
-        >
+        <Link href="/login" className={`${primaryButtonClass} mt-4 inline-block`}>
           Log in to continue
         </Link>
       </div>
@@ -105,7 +103,7 @@ export function MyListingsContent() {
 
   if (isLoadingListings) {
     return (
-      <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+      <div className={cardClass}>
         <p className="text-sm text-zinc-500">Loading your listings...</p>
       </div>
     );
@@ -113,7 +111,7 @@ export function MyListingsContent() {
 
   if (error) {
     return (
-      <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+      <div className={alertErrorClass}>
         Could not load your listings: {error}
       </div>
     );

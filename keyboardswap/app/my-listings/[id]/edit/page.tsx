@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { EditListingContent } from "@/components/EditListingContent";
+import { PageContainer } from "@/components/PageContainer";
 import { SiteHeader } from "@/components/SiteHeader";
+import { navLinkClass, pageDescriptionClass, pageTitleClass } from "@/lib/ui";
 
 type EditListingPageProps = {
   params: Promise<{ id: string }>;
@@ -11,28 +13,26 @@ export default async function EditListingPage({ params }: EditListingPageProps) 
 
   return (
     <div className="min-h-full bg-zinc-50">
-      <SiteHeader maxWidth="max-w-3xl" showSubmitLink />
+      <SiteHeader />
 
-      <main className="mx-auto max-w-3xl px-6 py-10">
+      <PageContainer maxWidth="max-w-3xl">
         <Link
           href="/my-listings"
-          className="mb-6 inline-block text-sm font-medium text-zinc-600 hover:text-zinc-900"
+          className={`${navLinkClass} mb-6 inline-block text-sm`}
         >
           ← Back to my listings
         </Link>
 
         <div className="mb-8">
-          <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">
-            Edit listing
-          </h1>
-          <p className="mt-2 text-zinc-600">
+          <h1 className={pageTitleClass}>Edit listing</h1>
+          <p className={pageDescriptionClass}>
             Update your listing details. Approved or rejected listings return to
             pending after save.
           </p>
         </div>
 
         <EditListingContent listingId={id} />
-      </main>
+      </PageContainer>
     </div>
   );
 }

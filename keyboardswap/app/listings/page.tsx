@@ -1,6 +1,12 @@
 import { EmptyListings, ListingCard } from "@/components/ListingCard";
+import { PageContainer } from "@/components/PageContainer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { supabase } from "@/lib/supabaseClient";
+import {
+  alertErrorClass,
+  pageDescriptionClass,
+  pageTitleClass,
+} from "@/lib/ui";
 import type { Listing } from "@/lib/types/listing";
 
 export default async function ListingsPage() {
@@ -14,23 +20,18 @@ export default async function ListingsPage() {
 
   return (
     <div className="min-h-full bg-zinc-50">
-      <SiteHeader
-        subtitle="Mechanical keyboard marketplace"
-        showSubmitLink
-      />
+      <SiteHeader />
 
-      <main className="mx-auto max-w-6xl px-6 py-10">
+      <PageContainer>
         <div className="mb-8">
-          <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">
-            Browse listings
-          </h1>
-          <p className="mt-2 text-zinc-600">
+          <h1 className={pageTitleClass}>Browse listings</h1>
+          <p className={pageDescriptionClass}>
             Approved keyboards from the community, newest first.
           </p>
         </div>
 
         {error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className={alertErrorClass}>
             Could not load listings: {error.message}
           </div>
         ) : listings.length === 0 ? (
@@ -42,7 +43,7 @@ export default async function ListingsPage() {
             ))}
           </div>
         )}
-      </main>
+      </PageContainer>
     </div>
   );
 }

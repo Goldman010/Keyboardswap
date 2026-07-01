@@ -1,15 +1,9 @@
+import { HeaderSkeleton } from "@/components/HeaderSkeleton";
+
 export default function MyListingsLoading() {
   return (
     <div className="min-h-full bg-zinc-50">
-      <header className="border-b border-zinc-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div>
-            <div className="h-6 w-32 animate-pulse rounded bg-zinc-100" />
-            <div className="mt-1 h-4 w-24 animate-pulse rounded bg-zinc-100" />
-          </div>
-          <div className="h-9 w-36 animate-pulse rounded-lg bg-zinc-100" />
-        </div>
-      </header>
+      <HeaderSkeleton />
 
       <main className="mx-auto max-w-6xl px-6 py-10">
         <div className="mb-8 flex items-end justify-between gap-4">

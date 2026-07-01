@@ -1,32 +1,32 @@
 import Link from "next/link";
-import { SiteHeader } from "@/components/SiteHeader";
 import { SignupForm } from "@/components/SignupForm";
+import { PageContainer } from "@/components/PageContainer";
+import { SiteHeader } from "@/components/SiteHeader";
+import { cardClass, navLinkClass, pageDescriptionClass, pageTitleClass } from "@/lib/ui";
 
 export default function SignupPage() {
   return (
     <div className="min-h-full bg-zinc-50">
-      <SiteHeader maxWidth="max-w-md" />
+      <SiteHeader />
 
-      <main className="mx-auto max-w-md px-6 py-10">
+      <PageContainer maxWidth="max-w-md">
         <div className="mb-8">
-          <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">
-            Create account
-          </h1>
-          <p className="mt-2 text-zinc-600">
+          <h1 className={pageTitleClass}>Create account</h1>
+          <p className={pageDescriptionClass}>
             Join KeyboardSwap to list your keyboards.
           </p>
         </div>
 
-        <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+        <div className={cardClass}>
           <SignupForm />
         </div>
 
         <p className="mt-6 text-center text-sm text-zinc-500">
-          <Link href="/" className="font-medium text-zinc-900 hover:underline">
+          <Link href="/" className={`${navLinkClass} hover:underline`}>
             Back to home
           </Link>
         </p>
-      </main>
+      </PageContainer>
     </div>
   );
 }

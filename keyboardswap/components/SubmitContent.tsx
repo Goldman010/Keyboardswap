@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CreateListingForm } from "@/components/CreateListingForm";
 import { supabase } from "@/lib/supabaseClient";
+import { cardClass, primaryButtonClass } from "@/lib/ui";
 
 export function SubmitContent() {
   const [isLoading, setIsLoading] = useState(true);
@@ -37,7 +38,7 @@ export function SubmitContent() {
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+      <div className={cardClass}>
         <p className="text-sm text-zinc-500">Checking login status...</p>
       </div>
     );
@@ -45,14 +46,11 @@ export function SubmitContent() {
 
   if (!isAuthenticated) {
     return (
-      <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+      <div className={cardClass}>
         <p className="text-zinc-600">
           You must be logged in to submit a listing.
         </p>
-        <Link
-          href="/login"
-          className="mt-4 inline-block rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
-        >
+        <Link href="/login" className={`${primaryButtonClass} mt-4 inline-block`}>
           Log in to continue
         </Link>
       </div>
@@ -60,7 +58,7 @@ export function SubmitContent() {
   }
 
   return (
-    <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+    <div className={cardClass}>
       <CreateListingForm onSuccess="inline" />
     </div>
   );
