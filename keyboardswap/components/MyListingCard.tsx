@@ -37,16 +37,25 @@ export function MyListingCard({ listing }: MyListingCardProps) {
             {formatPrice(listing.current_price)}
           </span>
 
-          {listing.status === "approved" ? (
+          <div className="flex items-center gap-3">
             <Link
-              href={`/listing/${listing.id}`}
+              href={`/my-listings/${listing.id}/edit`}
               className="text-sm font-medium text-zinc-600 underline underline-offset-4 hover:text-zinc-900"
             >
-              View listing
+              Edit
             </Link>
-          ) : (
-            <span className="text-sm text-zinc-400">Not public</span>
-          )}
+
+            {listing.status === "approved" ? (
+              <Link
+                href={`/listing/${listing.id}`}
+                className="text-sm font-medium text-zinc-600 underline underline-offset-4 hover:text-zinc-900"
+              >
+                View listing
+              </Link>
+            ) : (
+              <span className="text-sm text-zinc-400">Not public</span>
+            )}
+          </div>
         </div>
       </div>
     </article>
