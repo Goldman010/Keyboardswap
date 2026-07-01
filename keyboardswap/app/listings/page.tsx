@@ -1,4 +1,5 @@
-import { EmptyListings, ListingCard } from "@/components/ListingCard";
+import { EmptyListings } from "@/components/ListingCard";
+import { ListingsBrowse } from "@/components/ListingsBrowse";
 import { PageContainer } from "@/components/PageContainer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { supabase } from "@/lib/supabaseClient";
@@ -37,11 +38,7 @@ export default async function ListingsPage() {
         ) : listings.length === 0 ? (
           <EmptyListings message="No keyboards are currently listed." />
         ) : (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {listings.map((listing) => (
-              <ListingCard key={listing.id} listing={listing} />
-            ))}
-          </div>
+          <ListingsBrowse listings={listings} />
         )}
       </PageContainer>
     </div>

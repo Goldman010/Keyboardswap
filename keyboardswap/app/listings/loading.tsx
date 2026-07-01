@@ -30,6 +30,15 @@ export default function ListingsLoading() {
           <div className="mt-2 h-5 w-72 animate-pulse rounded bg-zinc-100" />
         </div>
 
+        <div className="mb-8 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="h-10 animate-pulse rounded-lg bg-zinc-100 sm:col-span-2 lg:col-span-4" />
+            <div className="h-10 animate-pulse rounded-lg bg-zinc-100" />
+            <div className="h-10 animate-pulse rounded-lg bg-zinc-100" />
+            <div className="h-10 animate-pulse rounded-lg bg-zinc-100" />
+          </div>
+        </div>
+
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, index) => (
             <ListingCardSkeleton key={index} />

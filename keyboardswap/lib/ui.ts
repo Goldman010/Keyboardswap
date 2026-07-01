@@ -22,3 +22,9 @@ export const pageTitleClass =
   "text-3xl font-semibold tracking-tight text-zinc-900";
 
 export const pageDescriptionClass = "mt-2 text-zinc-600";
+
+export const formLabelClass =
+  "flex flex-col gap-2 text-sm font-medium text-zinc-700";
+
+export const formInputClass =
+  "rounded-lg border border-zinc-300 px-3 py-2 font-normal text-zinc-900";
