@@ -1,0 +1,42 @@
+---
+description: Supabase schema, RLS, and data access rules
+globs: supabase/**/*.sql,lib/**/*.ts
+alwaysApply: false
+---
+
+# Supabase & data
+
+## Client
+
+- Use `lib/supabaseClient.ts` as the anon client entry point.
+- Env vars only: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+- Never expose service-role keys to the client or commit `.env` files.
+
+## Migrations
+
+```sql
+-- ✅ New change → new file
+-- supabase/migrations/20250702120000_add_listing_photos.sql
+
+-- ❌ Do not edit applied migrations in place
+```
+
+- Schema source of truth: `supabase/migrations/`.
+- Every public table gets RLS enabled from day one.
+
+## Listings rules
+
+- New inserts: `status = 'pending'`, `current_price >= starting_price`.
+- Public reads: only `status = 'approved'` (enforce in RLS, not just app code).
+- Do not weaken, disable, or bypass existing policies.
+
+## Types
+
+- Mirror DB enums/columns in `lib/types/listing.ts` (and future type files).
+- Reuse `Listing`, `ListingStatus`, `NewListing` — extend types when schema grows.
+
+## Avoid
+
+- Raw SQL in app code when Supabase client suffices.
+- Exposing pending/draft listings in public queries.
+- Replacing Supabase with another backend without approval.

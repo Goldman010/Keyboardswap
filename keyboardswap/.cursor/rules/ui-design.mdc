@@ -1,0 +1,40 @@
+---
+description: Tailwind UI and design system for KeyboardSwap
+globs: **/*.tsx,app/globals.css
+alwaysApply: false
+---
+
+# UI & styling
+
+Desktop-first, clean marketplace aesthetic. Extend existing patterns — do not introduce a new design system.
+
+## Palette & layout
+
+- Neutrals: zinc (`zinc-50` page bg, `zinc-900` primary actions, `zinc-200` borders).
+- Content width: `max-w-6xl` (browse), `max-w-3xl` (forms).
+- Grids: `grid gap-5 sm:grid-cols-2 lg:grid-cols-3` — desktop columns first, then breakpoints down.
+
+## Patterns (copy from existing code)
+
+```tsx
+// Card
+className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm"
+
+// Primary button
+className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-60"
+
+// Form input
+className="rounded-lg border border-zinc-300 px-3 py-2 font-normal text-zinc-900"
+```
+
+## UX direction
+
+- Card-based listing grids (Cars & Bids inspiration).
+- Clear condition labels, pricing, seller info.
+- Success/error banners: emerald for confirmation, red for errors.
+
+## Avoid
+
+- Mobile-only layouts that break desktop grid experience.
+- New color systems, component libraries, or global CSS rewrites.
+- Generic e-commerce patterns (cart, instant publish) unless explicitly requested.

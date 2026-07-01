@@ -1,0 +1,40 @@
+---
+description: Next.js App Router and React patterns for KeyboardSwap
+globs: app/**/*.{ts,tsx},components/**/*.tsx
+alwaysApply: false
+---
+
+# Next.js & React
+
+This project uses **Next.js 16** — read `node_modules/next/dist/docs/` before using APIs. Do not add Pages Router routes.
+
+## Server vs client
+
+```tsx
+// ✅ Server Component — default for pages and data fetching
+export default async function Page() {
+  const { data } = await supabase.from("listings").select("*");
+  return <ListingGrid listings={data ?? []} />;
+}
+
+// ✅ Client Component — only for interactivity
+"use client";
+export function CreateListingForm() { /* hooks, form submit */ }
+```
+
+- Fetch data in Server Components; pass props down.
+- Add `"use client"` only for forms, hooks, or browser APIs.
+- `searchParams` and route params may be Promises — await them per current Next.js docs.
+
+## Components
+
+- Domain types from `@/lib/types/` — do not duplicate inline.
+- Props: `type FooProps = { ... }`.
+- One component per file in `components/` unless tightly coupled (e.g. `EmptyListings` + `ListingCard`).
+- Import via `@/*` path alias.
+
+## Avoid
+
+- Replacing working Server Components with client-side fetch without reason.
+- New state libraries, UI frameworks, or CSS-in-JS — use Tailwind.
+- Rewriting pages/components outside the current task scope.

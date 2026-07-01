@@ -1,0 +1,45 @@
+---
+description: KeyboardSwap architecture, scope discipline, and change guardrails
+alwaysApply: true
+---
+
+# KeyboardSwap — project rules
+
+Read `PROJECT.md` for full context. This rule enforces architecture and edit discipline.
+
+## Product
+
+- Marketplace for custom mechanical keyboards, Cars & Bids–inspired.
+- Desktop-first UI; mobile-responsive, not mobile-only.
+- Listings require admin approval: `pending` → `approved` → `sold`.
+- Planned: auctions, fixed-price listings, Supabase Auth — extend; do not replace the model.
+
+## Architecture (do not restructure without asking)
+
+```
+app/           App Router pages & layouts
+components/    Reusable UI
+lib/           Supabase client, types, utilities
+supabase/migrations/   SQL schema + RLS (source of truth)
+```
+
+Stack: Next.js 16 App Router, TypeScript (strict), Tailwind 4, Supabase.
+
+## Edit discipline
+
+- **Minimal scope**: smallest correct diff for the task.
+- **Extend, don't rewrite**: reuse existing components, types, and patterns before adding new abstractions.
+- **No drive-by changes**: no unrelated refactors, renames, formatting sweeps, or dependency swaps.
+- **Match conventions**: read surrounding code first; new code should look like the same author wrote it.
+
+## Ask before changing
+
+- Admin approval workflow or listing status enum
+- RLS policies or public visibility rules
+- Applied migration files (add new migrations instead)
+- Core stack, major version bumps, or auth provider
+- Folder structure, project name, or UX direction away from curated marketplace
+
+## When unsure
+
+Preserve trust (approval gate), security (RLS), and existing UI (zinc palette, card grid). Check `PROJECT.md` roadmap before building features that belong in a later phase.
