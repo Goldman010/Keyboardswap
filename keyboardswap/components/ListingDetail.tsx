@@ -4,49 +4,19 @@ import {
   formatPrice,
   formatStatus,
 } from "@/lib/formatListing";
-import { ListingPlaceholderImage } from "@/components/ListingPlaceholderImage";
+import { ListingImageGallery } from "@/components/ListingImageGallery";
 
 type ListingDetailProps = {
   listing: Listing;
 };
 
 export function ListingDetail({ listing }: ListingDetailProps) {
-  const images = listing.image_urls ?? [];
-
   return (
     <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
-      {images.length > 0 ? (
-        <div
-          className={
-            images.length === 1
-              ? "grid"
-              : "grid gap-2 sm:grid-cols-2 lg:grid-cols-3"
-          }
-        >
-          {images.map((url, index) => (
-            <div
-              key={url}
-              className={
-                index === 0 && images.length > 1
-                  ? "sm:col-span-2 lg:col-span-3"
-                  : undefined
-              }
-            >
-              <ListingPlaceholderImage
-                src={url}
-                alt={`${listing.title} — photo ${index + 1}`}
-                aspectClass={
-                  index === 0 && images.length > 1
-                    ? "aspect-[16/10] lg:aspect-[21/9]"
-                    : "aspect-[4/3]"
-                }
-              />
-            </div>
-          ))}
-        </div>
-      ) : (
-        <ListingPlaceholderImage aspectClass="aspect-[16/10] lg:aspect-[21/9]" />
-      )}
+      <ListingImageGallery
+        images={listing.image_urls ?? []}
+        title={listing.title}
+      />
 
       <div className="flex flex-col gap-6 p-6 lg:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">

@@ -21,6 +21,7 @@ export function ListingCard({ listing }: ListingCardProps) {
       <ListingPlaceholderImage
         src={listing.image_urls?.[0]}
         alt={listing.title}
+        aspectClass="aspect-[4/3]"
       />
 
       <article className="flex flex-col gap-3 p-5">

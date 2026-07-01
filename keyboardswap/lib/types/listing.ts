@@ -1,4 +1,7 @@
-export type ListingStatus = "pending" | "approved" | "sold";
+import type { ModeratableListingStatus } from "@/lib/listingStatus";
+
+/** Includes `sold` for legacy rows; new listings use pending | approved | rejected. */
+export type ListingStatus = ModeratableListingStatus | "sold";
 
 export type Listing = {
   id: string;
