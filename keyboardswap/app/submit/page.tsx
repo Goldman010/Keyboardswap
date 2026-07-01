@@ -1,24 +1,20 @@
 import Link from "next/link";
-import { CreateListingForm } from "@/components/CreateListingForm";
+import { SiteHeader } from "@/components/SiteHeader";
+import { SubmitContent } from "@/components/SubmitContent";
 
 export default function SubmitPage() {
   return (
     <div className="min-h-full bg-zinc-50">
-      <header className="border-b border-zinc-200 bg-white">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
-          <Link href="/" className="text-lg font-semibold text-zinc-900">
-            KeyboardSwap
-          </Link>
-          <Link
-            href="/"
-            className="text-sm font-medium text-zinc-600 hover:text-zinc-900"
-          >
-            Back to listings
-          </Link>
-        </div>
-      </header>
+      <SiteHeader maxWidth="max-w-3xl" />
 
       <main className="mx-auto max-w-3xl px-6 py-10">
+        <Link
+          href="/listings"
+          className="mb-6 inline-block text-sm font-medium text-zinc-600 hover:text-zinc-900"
+        >
+          ← Back to listings
+        </Link>
+
         <div className="mb-8">
           <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">
             Submit a listing
@@ -29,9 +25,7 @@ export default function SubmitPage() {
           </p>
         </div>
 
-        <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-          <CreateListingForm onSuccess="inline" />
-        </div>
+        <SubmitContent />
       </main>
     </div>
   );

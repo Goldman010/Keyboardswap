@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { EmptyListings, ListingCard } from "@/components/ListingCard";
+import { SiteHeader } from "@/components/SiteHeader";
 import { supabase } from "@/lib/supabaseClient";
 import type { Listing } from "@/lib/types/listing";
 
@@ -19,24 +19,10 @@ export default async function Home({ searchParams }: HomeProps) {
 
   return (
     <div className="min-h-full bg-zinc-50">
-      <header className="border-b border-zinc-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div>
-            <Link href="/" className="text-lg font-semibold text-zinc-900">
-              KeyboardSwap
-            </Link>
-            <p className="text-sm text-zinc-500">
-              Mechanical keyboard marketplace
-            </p>
-          </div>
-          <Link
-            href="/submit"
-            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
-          >
-            Sell a keyboard
-          </Link>
-        </div>
-      </header>
+      <SiteHeader
+        subtitle="Mechanical keyboard marketplace"
+        showSubmitLink
+      />
 
       <main className="mx-auto max-w-6xl px-6 py-10">
         {params.submitted === "1" ? (

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Listing } from "@/lib/types/listing";
-import { formatListedDate, formatPrice } from "@/lib/formatListing";
+import { formatListedDate, formatPrice, formatSellerLabel } from "@/lib/formatListing";
 import { ListingPlaceholderImage } from "@/components/ListingPlaceholderImage";
 
 type ListingCardProps = {
@@ -39,7 +39,9 @@ export function ListingCard({ listing }: ListingCardProps) {
         </p>
 
         <div className="mt-auto flex items-center justify-between gap-4 border-t border-zinc-100 pt-4 text-sm">
-          <span className="text-zinc-500">@{listing.seller_username}</span>
+          <span className="text-zinc-500">
+            {formatSellerLabel(listing.seller_username)}
+          </span>
           <span className="text-base font-semibold text-zinc-900">
             {formatPrice(listing.current_price)}
           </span>

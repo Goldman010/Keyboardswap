@@ -100,18 +100,26 @@ export function CreateListingForm({ onSuccess = "redirect" }: CreateListingFormP
     const title = String(formData.get("title") ?? "").trim();
     const description = String(formData.get("description") ?? "").trim();
     const condition = String(formData.get("condition") ?? "").trim();
-    const seller_username = String(formData.get("seller_username") ?? "").trim();
     const starting_price = Number(formData.get("starting_price"));
 
     if (
       !title ||
       !description ||
       !condition ||
-      !seller_username ||
       Number.isNaN(starting_price) ||
       starting_price < 0
     ) {
       setError("Please fill in all fields with valid values.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (!session) {
+      setError("You must be logged in to submit a listing.");
       setIsSubmitting(false);
       return;
     }
@@ -138,7 +146,7 @@ export function CreateListingForm({ onSuccess = "redirect" }: CreateListingFormP
       title,
       description,
       condition,
-      seller_username,
+      seller_id: session.user.id,
       starting_price,
       current_price: starting_price,
       status: "pending",
@@ -235,16 +243,6 @@ export function CreateListingForm({ onSuccess = "redirect" }: CreateListingFormP
           required
           className="rounded-lg border border-zinc-300 px-3 py-2 font-normal text-zinc-900"
           placeholder="149.00"
-        />
-      </label>
-
-      <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
-        Seller username
-        <input
-          name="seller_username"
-          required
-          className="rounded-lg border border-zinc-300 px-3 py-2 font-normal text-zinc-900"
-          placeholder="your_username"
         />
       </label>
 

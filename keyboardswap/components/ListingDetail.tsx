@@ -2,6 +2,7 @@ import type { Listing } from "@/lib/types/listing";
 import {
   formatListedDate,
   formatPrice,
+  formatSellerLabel,
   formatStatus,
 } from "@/lib/formatListing";
 import { ListingImageGallery } from "@/components/ListingImageGallery";
@@ -48,7 +49,7 @@ export function ListingDetail({ listing }: ListingDetailProps) {
           <div>
             <dt className="text-sm font-medium text-zinc-500">Seller</dt>
             <dd className="mt-1 text-base text-zinc-900">
-              @{listing.seller_username}
+              {formatSellerLabel(listing.seller_username)}
             </dd>
           </div>
           <div>

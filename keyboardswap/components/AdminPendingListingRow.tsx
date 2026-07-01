@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ListingPlaceholderImage } from "@/components/ListingPlaceholderImage";
-import { formatListedDate, formatPrice } from "@/lib/formatListing";
+import { formatListedDate, formatPrice, formatSellerLabel } from "@/lib/formatListing";
 import { supabase } from "@/lib/supabaseClient";
 import type { Listing } from "@/lib/types/listing";
 
@@ -59,7 +59,7 @@ export function AdminPendingListingRow({ listing }: AdminPendingListingRowProps)
             <div>
               <dt className="text-zinc-500">Seller</dt>
               <dd className="font-medium text-zinc-900">
-                @{listing.seller_username}
+                {formatSellerLabel(listing.seller_username)}
               </dd>
             </div>
             <div>

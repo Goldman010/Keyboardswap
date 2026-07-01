@@ -10,7 +10,8 @@ export type Listing = {
   condition: string;
   starting_price: number;
   current_price: number;
-  seller_username: string;
+  seller_username: string | null;
+  seller_id: string | null;
   status: ListingStatus;
   created_at: string;
   image_urls: string[];
@@ -18,5 +19,5 @@ export type Listing = {
 
 export type NewListing = Pick<
   Listing,
-  "title" | "description" | "condition" | "starting_price" | "seller_username"
+  "title" | "description" | "condition" | "starting_price" | "seller_id"
 >;

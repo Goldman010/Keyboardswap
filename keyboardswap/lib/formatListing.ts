@@ -18,3 +18,11 @@ export function formatListedDate(date: string) {
 export function formatStatus(status: ListingStatus) {
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
+
+export function formatSellerLabel(sellerUsername: string | null | undefined) {
+  const username = sellerUsername?.trim();
+  if (username) {
+    return `@${username}`;
+  }
+  return "Verified seller";
+}

@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { AdminPendingListingRow } from "@/components/AdminPendingListingRow";
+import { SiteHeader } from "@/components/SiteHeader";
 import { supabase } from "@/lib/supabaseClient";
 import type { Listing } from "@/lib/types/listing";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
   const { data, error } = await supabase
@@ -14,24 +17,15 @@ export default async function AdminPage() {
 
   return (
     <div className="min-h-full bg-zinc-50">
-      <header className="border-b border-zinc-200 bg-white">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
-          <div>
-            <Link href="/" className="text-lg font-semibold text-zinc-900">
-              KeyboardSwap
-            </Link>
-            <p className="text-sm text-zinc-500">Admin</p>
-          </div>
-          <Link
-            href="/listings"
-            className="text-sm font-medium text-zinc-600 hover:text-zinc-900"
-          >
-            View listings
-          </Link>
-        </div>
-      </header>
+      <SiteHeader maxWidth="max-w-4xl" subtitle="Admin" />
 
       <main className="mx-auto max-w-4xl px-6 py-10">
+        <Link
+          href="/listings"
+          className="mb-6 inline-block text-sm font-medium text-zinc-600 hover:text-zinc-900"
+        >
+          View listings
+        </Link>
         <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
           Temporary admin page — auth required before launch.
         </div>
