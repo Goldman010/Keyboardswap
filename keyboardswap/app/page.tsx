@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { HomeHero } from "@/components/HomeHero";
-import { EmptyListings, ListingCard } from "@/components/ListingCard";
+import { FeaturedListingCard } from "@/components/FeaturedListingCard";
+import { EmptyListings } from "@/components/ListingCard";
+import { ListingsBrowse } from "@/components/ListingsBrowse";
 import { PageContainer } from "@/components/PageContainer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { filterBrowsableListings } from "@/lib/auction";
@@ -8,8 +9,6 @@ import { supabase } from "@/lib/supabaseClient";
 import {
   alertErrorClass,
   alertSuccessClass,
-  pageDescriptionClass,
-  pageTitleClass,
   primaryButtonClass,
 } from "@/lib/ui";
 import type { Listing } from "@/lib/types/listing";
@@ -20,57 +19,63 @@ type HomeProps = {
 
 export default async function Home({ searchParams }: HomeProps) {
   const params = await searchParams;
+
   const { data, error } = await supabase
     .from("listings")
     .select("*")
     .eq("status", "approved")
-    .order("created_at", { ascending: false });
+    .order("end_time", { ascending: true, nullsFirst: false });
 
-  const listings = filterBrowsableListings((data ?? []) as Listing[]).slice(
-    0,
-    3,
-  );
+  const listings = filterBrowsableListings((data ?? []) as Listing[]);
+  const [featured] = listings;
 
   return (
     <div className="min-h-full bg-zinc-50">
       <SiteHeader />
 
       <PageContainer>
-        {params.submitted === "1" ? (
+        {params.submitted === "1" && (
           <div className={`${alertSuccessClass} mb-6`}>
             Listing submitted. It will appear here once approved.
           </div>
-        ) : null}
+        )}
 
-        <HomeHero />
-
-        <section>
-          <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <h2 className={pageTitleClass}>Latest listings</h2>
-              <p className={pageDescriptionClass}>
-                The newest approved keyboards on KeyboardSwap.
-              </p>
-            </div>
-            <Link href="/listings" className={primaryButtonClass}>
-              Browse all listings
-            </Link>
+        {/* Page header */}
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">
+              KeyboardSwap
+            </h1>
+            <p className="mt-1 text-zinc-600">
+              Buy and sell custom mechanical keyboards.
+            </p>
           </div>
+          <Link href="/submit" className={primaryButtonClass}>
+            Sell a keyboard
+          </Link>
+        </div>
 
-          {error ? (
-            <div className={alertErrorClass}>
-              Could not load listings: {error.message}
-            </div>
-          ) : listings.length === 0 ? (
-            <EmptyListings message="No keyboards are currently listed." />
-          ) : (
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {listings.map((listing) => (
-                <ListingCard key={listing.id} listing={listing} />
-              ))}
-            </div>
-          )}
-        </section>
+        {error ? (
+          <div className={alertErrorClass}>
+            Could not load listings: {error.message}
+          </div>
+        ) : listings.length === 0 ? (
+          <EmptyListings message="No keyboards are currently listed." />
+        ) : (
+          <div className="flex flex-col gap-8">
+            {/* Featured auction */}
+            {featured && (
+              <section aria-label="Featured auction">
+                <FeaturedListingCard listing={featured} />
+              </section>
+            )}
+
+            {/* Marketplace grid */}
+            <section aria-label="All listings">
+              <ListingsBrowse listings={listings} />
+            </section>
+          </div>
+        )}
       </PageContainer>
     </div>
   );

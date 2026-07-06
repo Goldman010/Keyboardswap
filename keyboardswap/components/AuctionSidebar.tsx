@@ -91,7 +91,7 @@ export function AuctionSidebar({ listing }: AuctionSidebarProps) {
 
   return (
     <>
-      <aside className={`${cardClass} flex flex-col gap-5`}>
+      <aside className={`${cardClass} flex flex-col gap-5 lg:sticky lg:top-6`}>
         {/* Current / Starting bid */}
         <div>
           <p className="text-sm font-medium text-zinc-500">

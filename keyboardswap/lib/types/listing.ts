@@ -27,6 +27,9 @@ export type Listing = {
   scheduled_start_time: string | null;
   end_time: string | null;
   auction_status: AuctionStatus | null;
+  category: string | null;
+  known_flaws: string | null;
+  included_items: string | null;
 };
 
 export type NewListing = Pick<
