@@ -2,6 +2,7 @@ import { EmptyListings } from "@/components/ListingCard";
 import { ListingsBrowse } from "@/components/ListingsBrowse";
 import { PageContainer } from "@/components/PageContainer";
 import { SiteHeader } from "@/components/SiteHeader";
+import { filterBrowsableListings } from "@/lib/auction";
 import { supabase } from "@/lib/supabaseClient";
 import {
   alertErrorClass,
@@ -17,7 +18,7 @@ export default async function ListingsPage() {
     .eq("status", "approved")
     .order("created_at", { ascending: false });
 
-  const listings = (data ?? []) as Listing[];
+  const listings = filterBrowsableListings((data ?? []) as Listing[]);
 
   return (
     <div className="min-h-full bg-zinc-50">

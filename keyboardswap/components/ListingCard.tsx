@@ -1,5 +1,12 @@
 import Link from "next/link";
+import {
+  AuctionTimingBadge,
+} from "@/components/AuctionTimingBadge";
 import type { Listing } from "@/lib/types/listing";
+import {
+  getDisplayAuctionStatus,
+  getStartingBid,
+} from "@/lib/auction";
 import { formatListedDate, formatPrice, formatSellerLabel } from "@/lib/formatListing";
 import { ListingPlaceholderImage } from "@/components/ListingPlaceholderImage";
 
@@ -13,6 +20,12 @@ type EmptyListingsProps = {
 };
 
 export function ListingCard({ listing }: ListingCardProps) {
+  const auctionStatus = getDisplayAuctionStatus(listing);
+  const displayPrice =
+    auctionStatus === "scheduled"
+      ? getStartingBid(listing)
+      : listing.current_price;
+
   return (
     <Link
       href={`/listing/${listing.id}`}
@@ -34,16 +47,23 @@ export function ListingCard({ listing }: ListingCardProps) {
           </span>
         </div>
 
-        <p className="text-sm text-zinc-500">
-          Listed {formatListedDate(listing.created_at)}
-        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <AuctionTimingBadge listing={listing} />
+          <p className="text-sm text-zinc-500">
+            Listed {formatListedDate(listing.created_at)}
+          </p>
+        </div>
 
         <div className="mt-auto flex items-center justify-between gap-4 border-t border-zinc-100 pt-4 text-sm">
           <span className="text-zinc-500">
             {formatSellerLabel(listing.seller_username)}
           </span>
           <span className="text-base font-semibold text-zinc-900">
-            {formatPrice(listing.current_price)}
+            {auctionStatus === "scheduled" ? (
+              <>Starting {formatPrice(displayPrice)}</>
+            ) : (
+              formatPrice(displayPrice)
+            )}
           </span>
         </div>
       </article>

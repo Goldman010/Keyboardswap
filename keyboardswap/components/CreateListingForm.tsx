@@ -149,6 +149,8 @@ export function CreateListingForm({ onSuccess = "redirect" }: CreateListingFormP
       seller_id: session.user.id,
       starting_price,
       current_price: starting_price,
+      starting_bid: starting_price,
+      listing_type: "auction",
       status: "pending",
       image_urls,
     });

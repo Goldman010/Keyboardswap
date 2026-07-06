@@ -3,6 +3,7 @@ import { HomeHero } from "@/components/HomeHero";
 import { EmptyListings, ListingCard } from "@/components/ListingCard";
 import { PageContainer } from "@/components/PageContainer";
 import { SiteHeader } from "@/components/SiteHeader";
+import { filterBrowsableListings } from "@/lib/auction";
 import { supabase } from "@/lib/supabaseClient";
 import {
   alertErrorClass,
@@ -23,10 +24,12 @@ export default async function Home({ searchParams }: HomeProps) {
     .from("listings")
     .select("*")
     .eq("status", "approved")
-    .order("created_at", { ascending: false })
-    .limit(3);
+    .order("created_at", { ascending: false });
 
-  const listings = (data ?? []) as Listing[];
+  const listings = filterBrowsableListings((data ?? []) as Listing[]).slice(
+    0,
+    3,
+  );
 
   return (
     <div className="min-h-full bg-zinc-50">

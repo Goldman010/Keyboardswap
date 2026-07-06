@@ -1,10 +1,12 @@
-"use client";
-
 import Link from "next/link";
 import type { Listing } from "@/lib/types/listing";
 import { ListingStatusBadge } from "@/components/ListingStatusBadge";
 import { ListingPlaceholderImage } from "@/components/ListingPlaceholderImage";
-import { formatListedDate, formatPrice } from "@/lib/formatListing";
+import {
+  formatDateTime,
+  formatListedDate,
+  formatPrice,
+} from "@/lib/formatListing";
 
 type MyListingCardProps = {
   listing: Listing;
@@ -36,6 +38,12 @@ export function MyListingCard({ listing, onDeleteClick }: MyListingCardProps) {
             Listed {formatListedDate(listing.created_at)}
           </span>
         </div>
+
+        {listing.status === "approved" && listing.scheduled_start_time ? (
+          <p className="text-sm text-blue-800">
+            Auction starts {formatDateTime(listing.scheduled_start_time)}
+          </p>
+        ) : null}
 
         <div className="flex items-center justify-between gap-4 border-t border-zinc-100 pt-4">
           <span className="text-base font-semibold text-zinc-900">

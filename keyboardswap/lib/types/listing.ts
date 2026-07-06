@@ -1,4 +1,8 @@
 import type { ModeratableListingStatus } from "@/lib/listingStatus";
+import type {
+  AuctionStatus,
+  ListingType,
+} from "@/lib/auction";
 
 /** Includes `sold` for legacy rows; new listings use pending | approved | rejected. */
 export type ListingStatus = ModeratableListingStatus | "sold";
@@ -15,6 +19,14 @@ export type Listing = {
   status: ListingStatus;
   created_at: string;
   image_urls: string[];
+  listing_type: ListingType;
+  starting_bid: number | null;
+  reserve_price: number | null;
+  buy_it_now_price: number | null;
+  bid_increment: number | null;
+  scheduled_start_time: string | null;
+  end_time: string | null;
+  auction_status: AuctionStatus | null;
 };
 
 export type NewListing = Pick<
