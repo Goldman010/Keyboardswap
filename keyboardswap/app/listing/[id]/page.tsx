@@ -26,7 +26,7 @@ export default async function ListingPage({ params }: ListingPageProps) {
       <div className="min-h-full bg-zinc-50">
         <SiteHeader />
 
-        <PageContainer maxWidth="max-w-4xl">
+        <PageContainer maxWidth="max-w-6xl">
           <div className={alertErrorClass}>
             Could not load listing: {error.message}
           </div>
@@ -45,7 +45,7 @@ export default async function ListingPage({ params }: ListingPageProps) {
     <div className="min-h-full bg-zinc-50">
       <SiteHeader />
 
-      <PageContainer maxWidth="max-w-4xl">
+      <PageContainer maxWidth="max-w-6xl">
         <Link href="/listings" className={`${navLinkClass} mb-6 inline-block text-sm`}>
           ← Back to listings
         </Link>
