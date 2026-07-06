@@ -13,6 +13,7 @@ import type { Listing } from "@/lib/types/listing";
 
 type AuctionSidebarProps = {
   listing: Listing;
+  bidCount: number;
 };
 
 function useCountdown(targetDate: Date | null): number | null {
@@ -54,7 +55,7 @@ function formatCountdown(ms: number): string {
   return `${pad(minutes)}m ${pad(seconds)}s`;
 }
 
-export function AuctionSidebar({ listing }: AuctionSidebarProps) {
+export function AuctionSidebar({ listing, bidCount }: AuctionSidebarProps) {
   const [modalOpen, setModalOpen] = useState(false);
 
   const auctionStatus = getDisplayAuctionStatus(listing);
@@ -147,7 +148,7 @@ export function AuctionSidebar({ listing }: AuctionSidebarProps) {
               value={formatDateTime(listing.end_time)}
             />
           )}
-          <SidebarRow label="Bids" value="0" />
+          <SidebarRow label="Bids" value={String(bidCount)} />
           <SidebarRow label="Watchers" value="—" />
         </dl>
       </aside>

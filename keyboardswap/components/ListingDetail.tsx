@@ -1,3 +1,4 @@
+import type { Bid } from "@/lib/types/bid";
 import type { Listing } from "@/lib/types/listing";
 import { LISTING_TYPE_LABELS } from "@/lib/auction";
 import { AuctionSidebar } from "@/components/AuctionSidebar";
@@ -6,9 +7,10 @@ import { ListingImageGallery } from "@/components/ListingImageGallery";
 
 type ListingDetailProps = {
   listing: Listing;
+  bids: Bid[];
 };
 
-export function ListingDetail({ listing }: ListingDetailProps) {
+export function ListingDetail({ listing, bids }: ListingDetailProps) {
   return (
     <div className="flex flex-col gap-6">
       {/* Title + meta badges */}
@@ -32,11 +34,11 @@ export function ListingDetail({ listing }: ListingDetailProps) {
           images={listing.image_urls ?? []}
           title={listing.title}
         />
-        <AuctionSidebar listing={listing} />
+        <AuctionSidebar listing={listing} bidCount={bids.length} />
       </div>
 
       {/* Details / Bid History / Questions tabs */}
-      <ListingDetailTabs listing={listing} />
+      <ListingDetailTabs listing={listing} bids={bids} />
     </div>
   );
 }

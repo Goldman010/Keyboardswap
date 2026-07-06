@@ -2,11 +2,18 @@
 
 import { useState } from "react";
 import { LISTING_TYPE_LABELS } from "@/lib/auction";
-import { formatListedDate, formatPrice, formatSellerLabel } from "@/lib/formatListing";
+import {
+  formatListedDate,
+  formatPrice,
+  formatRelativeTime,
+  formatSellerLabel,
+} from "@/lib/formatListing";
+import type { Bid } from "@/lib/types/bid";
 import type { Listing } from "@/lib/types/listing";
 
 type ListingDetailTabsProps = {
   listing: Listing;
+  bids: Bid[];
 };
 
 type Tab = "details" | "bid_history" | "questions";
@@ -24,7 +31,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   accessories: "Accessories",
 };
 
-export function ListingDetailTabs({ listing }: ListingDetailTabsProps) {
+export function ListingDetailTabs({ listing, bids }: ListingDetailTabsProps) {
   const [activeTab, setActiveTab] = useState<Tab>("details");
 
   return (
@@ -54,7 +61,7 @@ export function ListingDetailTabs({ listing }: ListingDetailTabsProps) {
       {/* Tab panels */}
       <div className="p-6">
         {activeTab === "details" && <DetailsTab listing={listing} />}
-        {activeTab === "bid_history" && <BidHistoryTab />}
+        {activeTab === "bid_history" && <BidHistoryTab bids={bids} />}
         {activeTab === "questions" && <QuestionsTab />}
       </div>
     </div>
@@ -144,14 +151,59 @@ function SpecRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function BidHistoryTab() {
+// Returns a stable mapping of bidder_id → sequential number,
+// based on the order each bidder first appears (earliest bid first).
+function buildBidderNumbers(bids: Bid[]): Map<string, number> {
+  const sorted = [...bids].sort(
+    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+  );
+  const map = new Map<string, number>();
+  for (const bid of sorted) {
+    if (!map.has(bid.bidder_id)) {
+      map.set(bid.bidder_id, map.size + 1);
+    }
+  }
+  return map;
+}
+
+function BidHistoryTab({ bids }: { bids: Bid[] }) {
+  if (bids.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-14 text-center">
+        <p className="text-base font-medium text-zinc-900">No bids yet.</p>
+        <p className="mt-2 text-sm leading-6 text-zinc-500">
+          Bidder identities are hidden. Full bidding history will appear here
+          once bidding is live.
+        </p>
+      </div>
+    );
+  }
+
+  const bidderNumbers = buildBidderNumbers(bids);
+
   return (
-    <div className="rounded-xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-14 text-center">
-      <p className="text-base font-medium text-zinc-900">No bids yet.</p>
-      <p className="mt-2 text-sm leading-6 text-zinc-500">
-        Bidder identities are hidden. Full bidding history will appear here
-        once bidding is live.
+    <div>
+      <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+        {bids.length} {bids.length === 1 ? "bid" : "bids"} — bidder identities are
+        anonymous
       </p>
+      <ul className="divide-y divide-zinc-100">
+        {bids.map((bid) => (
+          <li key={bid.id} className="flex items-center justify-between gap-4 py-3">
+            <div className="flex items-baseline gap-3">
+              <span className="text-base font-semibold text-zinc-900">
+                {formatPrice(bid.amount)}
+              </span>
+              <span className="text-sm text-zinc-400">
+                {formatRelativeTime(bid.created_at)}
+              </span>
+            </div>
+            <span className="shrink-0 text-sm font-medium text-zinc-500">
+              Bidder #{bidderNumbers.get(bid.bidder_id)}
+            </span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
