@@ -4,6 +4,9 @@ export const primaryButtonClass =
 export const secondaryButtonClass =
   "rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50";
 
+export const destructiveButtonClass =
+  "rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60";
+
 export const cardClass =
   "rounded-xl border border-zinc-200 bg-white p-6 shadow-sm";
 

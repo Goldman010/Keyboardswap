@@ -1,0 +1,436 @@
+KeyboardSwap Vision
+Mission
+
+KeyboardSwap exists to become the home of the custom mechanical keyboard community.
+
+It begins as the safest and easiest place to buy, sell, and auction custom mechanical keyboards and components. Over time, it evolves into the platform where enthusiasts build, learn, share, collect, and connect.
+
+KeyboardSwap is not simply another marketplace. It is an ecosystem designed specifically for keyboard enthusiasts.
+
+The Three Pillars
+Marketplace
+
+A trusted marketplace where users can:
+
+Buy
+Sell
+Auction
+Trade
+
+all aspects of the mechanical keyboard hobby.
+
+Marketplace features include:
+
+Auctions
+Buy It Now
+Make Offer
+Seller verification
+Buyer verification
+Secure payments
+Reputation
+Market pricing
+Community
+
+People should visit KeyboardSwap even when they aren't buying.
+
+Examples:
+
+Build logs
+Build journals
+Collection showcases
+Desk setups
+Sound tests
+Reviews
+Guides
+Featured builders
+Featured collections
+Monthly competitions
+
+The goal is to become the daily homepage for keyboard enthusiasts.
+
+Tools
+
+KeyboardSwap should provide tools unavailable anywhere else.
+
+Examples:
+
+Keyboard Builder
+Compatibility Checker
+Market Price History
+Collection Tracker
+Wishlist
+Saved Searches
+Build Planner
+Builder Marketplace
+
+Every tool should strengthen the marketplace.
+
+Philosophy
+
+Every feature should answer one question:
+
+Does this make KeyboardSwap a better place to buy, build, or learn?
+
+If not, it probably doesn't belong.
+
+Target Users
+
+Primary:
+
+Mechanical keyboard enthusiasts
+Collectors
+Builders
+Modders
+
+Secondary:
+
+First-time custom keyboard buyers
+Streamers
+Reviewers
+Professional keyboard builders
+Long-Term Vision
+
+KeyboardSwap should eventually become the operating system for the mechanical keyboard hobby.
+
+Instead of using:
+
+Reddit
+Discord
+eBay
+Facebook Marketplace
+GeekHack
+PCPartPicker
+
+Users should be able to accomplish nearly everything from one platform.
+
+Marketplace
+
+The marketplace should support multiple listing types.
+
+Listing Types
+Auction
+Buy It Now
+Make Offer
+
+Each listing should have:
+
+Images
+Detailed specifications
+Seller profile
+Questions & Answers
+Comments
+View count
+Watch count
+Price history (eventually)
+Categories
+Keyboards
+
+Examples:
+
+Full Builds
+Barebones
+DIY Kits
+
+Fields:
+
+Manufacturer
+Model
+Layout
+Mount Style
+Material
+Plate Material
+PCB
+Hot Swap
+Wired/Wireless
+Switches
+Stabilizers
+Keycaps Included
+Weight
+Typing Angle
+Mods
+Original Packaging
+Keycaps
+
+Fields:
+
+Manufacturer
+Profile
+Material
+Compatibility
+Language Layout
+Colorway
+Condition
+Components
+
+Examples:
+
+Switches
+Plates
+PCB
+Cases
+Stabilizers
+Foam
+Weights
+Daughterboards
+
+Fields should dynamically change depending on component type.
+
+Accessories
+
+Examples:
+
+Cables
+Deskmats
+Wrist Rests
+Carrying Cases
+Tools
+Lubes
+Films
+Listing Creation
+
+The listing page should be dynamic.
+
+The first question is:
+
+"What are you selling?"
+
+Every category loads different fields.
+
+Common fields remain consistent.
+
+Additional Details always appears last.
+
+Image uploads should support multiple photos.
+
+Homepage
+
+Homepage should contain:
+
+Hero section
+
+↓
+
+Featured listings
+
+↓
+
+Ending Soon
+
+↓
+
+Newest Listings
+
+↓
+
+Infinite scrolling marketplace
+
+Featured listings are selected by administrators.
+
+Ending Soon should create urgency.
+
+Search
+
+Search should be category aware.
+
+Keyboard filters:
+
+Layout
+Material
+Mount
+Switch
+Hot Swap
+Wireless
+Price
+Auction Type
+
+Keycap filters:
+
+Profile
+Manufacturer
+Material
+
+Component filters should dynamically adapt.
+
+Auctions
+
+Auctions should feel exciting but fair.
+
+Current ideas:
+
+Standard duration
+Reserve price (optional)
+Buy It Now (optional)
+Proxy bidding
+Automatic bid increments
+Anti-sniping extension
+Verified payment method required before bidding
+Community
+
+Eventually users should have profiles.
+
+Profiles include:
+
+Seller Rating
+
+Builder Rating
+
+Collections
+
+Completed Builds
+
+Build Journals
+
+Wishlist
+
+Followers
+
+Badges
+
+Builder Marketplace
+
+Professional builders should be able to register as builders.
+
+Customers submit build requests.
+
+Builders provide quotes.
+
+Customers select a builder.
+
+KeyboardSwap facilitates payment.
+
+KeyboardSwap earns a platform fee.
+
+Keyboard Builder
+
+A future flagship feature.
+
+Users create complete keyboard builds.
+
+Example:
+
+Case
+
+↓
+
+Compatible PCB
+
+↓
+
+Compatible Plate
+
+↓
+
+Compatible Stabilizers
+
+↓
+
+Compatible Switches
+
+↓
+
+Compatible Keycaps
+
+↓
+
+Accessories
+
+The builder should use marketplace listings whenever possible.
+
+Users can purchase an entire compatible build with one checkout.
+
+Collections
+
+Users should be able to showcase:
+
+Current Collection
+
+Wishlist
+
+Previously Owned
+
+Dream Builds
+
+Completed Builds
+
+Collections should be public.
+
+Market Data
+
+Every completed sale improves KeyboardSwap.
+
+Examples:
+
+Average Sale Price
+
+Recent Sales
+
+Highest Sale
+
+Lowest Sale
+
+Price Trend
+
+Historical Graphs
+
+Eventually KeyboardSwap becomes the pricing authority for custom keyboards.
+
+Long-Term Principles
+
+Every listing should contribute data.
+
+Every build should improve compatibility.
+
+Every sale should improve market pricing.
+
+Every interaction should strengthen the community.
+
+Every new feature should make the marketplace smarter.
+
+MVP Roadmap
+Phase 1
+
+Marketplace
+
+Authentication
+
+Images
+
+Search
+
+Admin
+
+CRUD
+
+Payments
+
+Phase 2
+
+Favorites
+
+Comments
+
+Seller Profiles
+
+Notifications
+
+Phase 3
+
+Auctions
+
+Bid History
+
+Watchlists
+
+Price History
+
+Phase 4
+
+Builder Marketplace
+
+Keyboard Builder
+
+Compatibility Engine
+
+Collections
+
+Community

@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import type { Listing } from "@/lib/types/listing";
 import { ListingStatusBadge } from "@/components/ListingStatusBadge";
@@ -6,9 +8,12 @@ import { formatListedDate, formatPrice } from "@/lib/formatListing";
 
 type MyListingCardProps = {
   listing: Listing;
+  onDeleteClick?: (listing: Listing) => void;
 };
 
-export function MyListingCard({ listing }: MyListingCardProps) {
+export function MyListingCard({ listing, onDeleteClick }: MyListingCardProps) {
+  const canDelete = listing.status !== "sold";
+
   return (
     <article className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
       <ListingPlaceholderImage
@@ -37,7 +42,7 @@ export function MyListingCard({ listing }: MyListingCardProps) {
             {formatPrice(listing.current_price)}
           </span>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-3">
             <Link
               href={`/my-listings/${listing.id}/edit`}
               className="text-sm font-medium text-zinc-600 underline underline-offset-4 hover:text-zinc-900"
@@ -55,6 +60,16 @@ export function MyListingCard({ listing }: MyListingCardProps) {
             ) : (
               <span className="text-sm text-zinc-400">Not public</span>
             )}
+
+            {canDelete && onDeleteClick ? (
+              <button
+                type="button"
+                onClick={() => onDeleteClick(listing)}
+                className="text-sm font-medium text-red-600 underline underline-offset-4 hover:text-red-700"
+              >
+                Delete
+              </button>
+            ) : null}
           </div>
         </div>
       </div>

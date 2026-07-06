@@ -113,31 +113,3 @@ Phase 1 is complete when a user can:
 At that point KeyboardSwap is a complete marketplace.
 
 Only then should development move to Community and Builder Marketplace.
-
-
-# Existing Code
-
-Before creating:
-
-- a component
-- a hook
-- a utility
-- a page
-- a type
-
-First search the project for an existing implementation that can be reused or extended.
-
-Avoid creating duplicate functionality.
-
-Favor improving existing code over introducing parallel implementations.
-
-
-# Decision Making
-
-When there are multiple reasonable implementation options:
-
-- Recommend the simplest maintainable solution.
-- Explain any tradeoffs.
-- Wait for approval before implementing architectural changes.
-
-Favor solutions that leave room for future marketplace, community, and builder features without overengineering the current implementation.

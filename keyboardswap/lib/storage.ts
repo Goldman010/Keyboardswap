@@ -57,3 +57,36 @@ export async function uploadListingImages(files: File[]): Promise<string[]> {
 
   return urls;
 }
+
+const PUBLIC_URL_MARKER = `/storage/v1/object/public/${LISTING_IMAGES_BUCKET}/`;
+
+export function getListingImageStoragePath(publicUrl: string): string | null {
+  const index = publicUrl.indexOf(PUBLIC_URL_MARKER);
+  if (index === -1) {
+    return null;
+  }
+
+  return decodeURIComponent(publicUrl.slice(index + PUBLIC_URL_MARKER.length));
+}
+
+export async function deleteListingImages(
+  urls: string[],
+): Promise<string | null> {
+  const paths = urls
+    .map(getListingImageStoragePath)
+    .filter((path): path is string => path !== null);
+
+  if (paths.length === 0) {
+    return null;
+  }
+
+  const { error } = await supabase.storage
+    .from(LISTING_IMAGES_BUCKET)
+    .remove(paths);
+
+  if (error) {
+    return error.message;
+  }
+
+  return null;
+}

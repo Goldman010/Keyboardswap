@@ -2,9 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { MyListingCard } from "@/components/MyListingCard";
+import { deleteListing } from "@/lib/deleteListing";
 import { supabase } from "@/lib/supabaseClient";
-import { alertErrorClass, cardClass, primaryButtonClass } from "@/lib/ui";
+import {
+  alertErrorClass,
+  alertSuccessClass,
+  cardClass,
+  primaryButtonClass,
+} from "@/lib/ui";
 import type { Listing } from "@/lib/types/listing";
 
 export function MyListingsContent() {
@@ -13,6 +20,10 @@ export function MyListingsContent() {
   const [isLoadingListings, setIsLoadingListings] = useState(false);
   const [listings, setListings] = useState<Listing[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [listingToDelete, setListingToDelete] = useState<Listing | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -80,6 +91,51 @@ export function MyListingsContent() {
     };
   }, []);
 
+  function handleDeleteClick(listing: Listing) {
+    setDeleteError(null);
+    setListingToDelete(listing);
+  }
+
+  function handleCloseDeleteDialog() {
+    if (isDeleting) {
+      return;
+    }
+
+    setListingToDelete(null);
+    setDeleteError(null);
+  }
+
+  async function handleConfirmDelete() {
+    if (!listingToDelete) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setDeleteError(null);
+
+    const result = await deleteListing(listingToDelete);
+
+    setIsDeleting(false);
+
+    if (!result.success) {
+      setDeleteError(result.error);
+      return;
+    }
+
+    setListings((current) =>
+      current.filter((listing) => listing.id !== listingToDelete.id),
+    );
+    setListingToDelete(null);
+    setSuccessMessage("Listing deleted successfully.");
+
+    if (result.storageCleanupError) {
+      console.error(
+        "Storage cleanup failed after listing deletion:",
+        result.storageCleanupError,
+      );
+    }
+  }
+
   if (isLoadingAuth) {
     return (
       <div className={cardClass}>
@@ -119,25 +175,52 @@ export function MyListingsContent() {
 
   if (listings.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-12 text-center">
-        <p className="text-zinc-600">You haven&apos;t submitted any listings yet.</p>
-        <Link
-          href="/submit"
-          className="mt-4 inline-block text-sm font-medium text-zinc-900 underline underline-offset-4"
-        >
-          Submit your first listing
-        </Link>
-      </div>
+      <>
+        {successMessage ? (
+          <div className={`${alertSuccessClass} mb-6`}>{successMessage}</div>
+        ) : null}
+
+        <div className="rounded-xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-12 text-center">
+          <p className="text-zinc-600">You haven&apos;t submitted any listings yet.</p>
+          <Link
+            href="/submit"
+            className="mt-4 inline-block text-sm font-medium text-zinc-900 underline underline-offset-4"
+          >
+            Submit your first listing
+          </Link>
+        </div>
+      </>
     );
   }
 
   return (
-    <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-      {listings.map((listing) => (
-        <li key={listing.id}>
-          <MyListingCard listing={listing} />
-        </li>
-      ))}
-    </ul>
+    <>
+      {successMessage ? (
+        <div className={`${alertSuccessClass} mb-6`}>{successMessage}</div>
+      ) : null}
+
+      <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {listings.map((listing) => (
+          <li key={listing.id}>
+            <MyListingCard
+              listing={listing}
+              onDeleteClick={handleDeleteClick}
+            />
+          </li>
+        ))}
+      </ul>
+
+      <ConfirmDialog
+        isOpen={listingToDelete !== null}
+        message={
+          "Are you sure you want to permanently delete this listing?\nThis action cannot be undone."
+        }
+        confirmLabel="Delete Listing"
+        isLoading={isDeleting}
+        error={deleteError}
+        onConfirm={handleConfirmDelete}
+        onClose={handleCloseDeleteDialog}
+      />
+    </>
   );
 }
