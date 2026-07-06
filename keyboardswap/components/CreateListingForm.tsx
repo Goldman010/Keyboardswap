@@ -97,19 +97,24 @@ export function CreateListingForm({ onSuccess = "redirect" }: CreateListingFormP
     setIsSubmitting(true);
 
     const formData = new FormData(form);
+    const category = String(formData.get("category") ?? "").trim();
     const title = String(formData.get("title") ?? "").trim();
     const description = String(formData.get("description") ?? "").trim();
+    const known_flaws = String(formData.get("known_flaws") ?? "").trim();
+    const included_items = String(formData.get("included_items") ?? "").trim();
     const condition = String(formData.get("condition") ?? "").trim();
     const starting_price = Number(formData.get("starting_price"));
 
     if (
+      !category ||
       !title ||
       !description ||
+      !known_flaws ||
       !condition ||
       Number.isNaN(starting_price) ||
       starting_price < 0
     ) {
-      setError("Please fill in all fields with valid values.");
+      setError("Please fill in all required fields.");
       setIsSubmitting(false);
       return;
     }
@@ -143,8 +148,11 @@ export function CreateListingForm({ onSuccess = "redirect" }: CreateListingFormP
     }
 
     const { error: insertError } = await supabase.from("listings").insert({
+      category,
       title,
       description,
+      known_flaws,
+      included_items: included_items || null,
       condition,
       seller_id: session.user.id,
       starting_price,
@@ -195,6 +203,24 @@ export function CreateListingForm({ onSuccess = "redirect" }: CreateListingFormP
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
+        Category
+        <select
+          name="category"
+          required
+          defaultValue=""
+          className="rounded-lg border border-zinc-300 px-3 py-2 font-normal text-zinc-900"
+        >
+          <option value="" disabled>
+            Select a category
+          </option>
+          <option value="full_build">Full Build</option>
+          <option value="keycaps">Keycaps</option>
+          <option value="components">Components</option>
+          <option value="accessories">Accessories</option>
+        </select>
+      </label>
+
+      <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
         Title
         <input
           name="title"
@@ -211,9 +237,38 @@ export function CreateListingForm({ onSuccess = "redirect" }: CreateListingFormP
           required
           rows={5}
           className="rounded-lg border border-zinc-300 px-3 py-2 font-normal text-zinc-900"
-          placeholder="Switch type, mods, included extras, shipping notes..."
+          placeholder="Switch type, mods, condition notes, shipping info..."
         />
       </label>
+
+      <div className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
+        <label htmlFor="known_flaws">Known Flaws / Defects</label>
+        <p className="font-normal text-zinc-500">
+          Write &ldquo;No known flaws&rdquo; if there are none.
+        </p>
+        <textarea
+          id="known_flaws"
+          name="known_flaws"
+          required
+          rows={3}
+          className="rounded-lg border border-zinc-300 px-3 py-2 font-normal text-zinc-900"
+          placeholder="Scratches, missing accessories, broken LEDs, modifications..."
+        />
+      </div>
+
+      <div className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
+        <label htmlFor="included_items">
+          Included Items{" "}
+          <span className="font-normal text-zinc-400">(optional)</span>
+        </label>
+        <textarea
+          id="included_items"
+          name="included_items"
+          rows={2}
+          className="rounded-lg border border-zinc-300 px-3 py-2 font-normal text-zinc-900"
+          placeholder="e.g. cable, carrying case, extra keycaps, tools"
+        />
+      </div>
 
       <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
         Condition

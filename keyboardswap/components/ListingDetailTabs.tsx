@@ -147,9 +147,10 @@ function SpecRow({ label, value }: { label: string; value: string }) {
 function BidHistoryTab() {
   return (
     <div className="rounded-xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-14 text-center">
-      <p className="text-base font-medium text-zinc-500">Bid History</p>
-      <p className="mt-1 text-sm text-zinc-400">
-        Bid history will appear here once bidding opens.
+      <p className="text-base font-medium text-zinc-900">No bids yet.</p>
+      <p className="mt-2 text-sm leading-6 text-zinc-500">
+        Bidder identities are hidden. Full bidding history will appear here
+        once bidding is live.
       </p>
     </div>
   );
@@ -158,9 +159,9 @@ function BidHistoryTab() {
 function QuestionsTab() {
   return (
     <div className="rounded-xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-14 text-center">
-      <p className="text-base font-medium text-zinc-500">Questions</p>
-      <p className="mt-1 text-sm text-zinc-400">
-        Questions will appear here once Q&amp;A is enabled.
+      <p className="text-base font-medium text-zinc-900">No questions yet.</p>
+      <p className="mt-2 text-sm leading-6 text-zinc-500">
+        Questions and seller answers will appear here once Q&amp;A is enabled.
       </p>
     </div>
   );

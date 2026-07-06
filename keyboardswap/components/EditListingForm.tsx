@@ -23,19 +23,24 @@ export function EditListingForm({ listing }: EditListingFormProps) {
     setIsSubmitting(true);
 
     const formData = new FormData(form);
+    const category = String(formData.get("category") ?? "").trim();
     const title = String(formData.get("title") ?? "").trim();
     const description = String(formData.get("description") ?? "").trim();
+    const known_flaws = String(formData.get("known_flaws") ?? "").trim();
+    const included_items = String(formData.get("included_items") ?? "").trim();
     const condition = String(formData.get("condition") ?? "").trim();
     const starting_price = Number(formData.get("starting_price"));
 
     if (
+      !category ||
       !title ||
       !description ||
+      !known_flaws ||
       !condition ||
       Number.isNaN(starting_price) ||
       starting_price < 0
     ) {
-      setError("Please fill in all fields with valid values.");
+      setError("Please fill in all required fields.");
       setIsSubmitting(false);
       return;
     }
@@ -51,15 +56,21 @@ export function EditListingForm({ listing }: EditListingFormProps) {
     }
 
     const updatePayload: {
+      category: string;
       title: string;
       description: string;
+      known_flaws: string;
+      included_items: string | null;
       condition: string;
       starting_price: number;
       status: Listing["status"];
       current_price?: number;
     } = {
+      category,
       title,
       description,
+      known_flaws,
+      included_items: included_items || null,
       condition,
       starting_price,
       status: statusAfterEdit(listing.status),
@@ -95,6 +106,24 @@ export function EditListingForm({ listing }: EditListingFormProps) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
+        Category
+        <select
+          name="category"
+          required
+          defaultValue={listing.category ?? ""}
+          className="rounded-lg border border-zinc-300 px-3 py-2 font-normal text-zinc-900"
+        >
+          <option value="" disabled>
+            Select a category
+          </option>
+          <option value="full_build">Full Build</option>
+          <option value="keycaps">Keycaps</option>
+          <option value="components">Components</option>
+          <option value="accessories">Accessories</option>
+        </select>
+      </label>
+
+      <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
         Title
         <input
           name="title"
@@ -114,6 +143,37 @@ export function EditListingForm({ listing }: EditListingFormProps) {
           className="rounded-lg border border-zinc-300 px-3 py-2 font-normal text-zinc-900"
         />
       </label>
+
+      <div className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
+        <label htmlFor="edit_known_flaws">Known Flaws / Defects</label>
+        <p className="font-normal text-zinc-500">
+          Write &ldquo;No known flaws&rdquo; if there are none.
+        </p>
+        <textarea
+          id="edit_known_flaws"
+          name="known_flaws"
+          required
+          rows={3}
+          defaultValue={listing.known_flaws ?? ""}
+          className="rounded-lg border border-zinc-300 px-3 py-2 font-normal text-zinc-900"
+          placeholder="Scratches, missing accessories, broken LEDs, modifications..."
+        />
+      </div>
+
+      <div className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
+        <label htmlFor="edit_included_items">
+          Included Items{" "}
+          <span className="font-normal text-zinc-400">(optional)</span>
+        </label>
+        <textarea
+          id="edit_included_items"
+          name="included_items"
+          rows={2}
+          defaultValue={listing.included_items ?? ""}
+          className="rounded-lg border border-zinc-300 px-3 py-2 font-normal text-zinc-900"
+          placeholder="e.g. cable, carrying case, extra keycaps, tools"
+        />
+      </div>
 
       <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
         Condition

@@ -17,19 +17,21 @@ type AuctionSidebarProps = {
 
 function useCountdown(targetDate: Date | null): number | null {
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const targetTimestamp = targetDate?.getTime() ?? null;
 
   useEffect(() => {
-    if (!targetDate) return;
+    if (targetTimestamp === null) return;
+    const ts = targetTimestamp;
 
     function tick() {
-      const diff = targetDate!.getTime() - Date.now();
+      const diff = ts - Date.now();
       setTimeLeft(diff > 0 ? diff : 0);
     }
 
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
-  }, [targetDate]);
+  }, [targetTimestamp]);
 
   return timeLeft;
 }
