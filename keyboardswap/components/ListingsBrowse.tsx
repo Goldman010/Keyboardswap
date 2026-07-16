@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ListingCard } from "@/components/ListingCard";
 import { getDisplayAuctionStatus, parseDate } from "@/lib/auction";
 import type { Listing } from "@/lib/types/listing";
@@ -26,10 +26,10 @@ const CATEGORY_OPTIONS = [
 
 // ── Sort helpers ───────────────────────────────────────────────────────────────
 
-function sortByEndingSoon(listings: Listing[]): Listing[] {
+function sortByEndingSoon(listings: Listing[], now: Date): Listing[] {
   return [...listings].sort((a, b) => {
-    const statusA = getDisplayAuctionStatus(a);
-    const statusB = getDisplayAuctionStatus(b);
+    const statusA = getDisplayAuctionStatus(a, now);
+    const statusB = getDisplayAuctionStatus(b, now);
     const priority = { live: 0, scheduled: 1, ended: 2 } as const;
     const diff = priority[statusA] - priority[statusB];
     if (diff !== 0) return diff;
@@ -42,17 +42,20 @@ function sortByEndingSoon(listings: Listing[]): Listing[] {
   });
 }
 
-function sortListings(listings: Listing[], sort: SortOption): Listing[] {
+function sortListings(listings: Listing[], sort: SortOption, now: Date): Listing[] {
   switch (sort) {
     case "ending_soon":
-      return sortByEndingSoon(listings);
+      return sortByEndingSoon(listings, now);
     case "newly_listed":
       return [...listings].sort(
         (a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
       );
     case "no_reserve":
-      return sortByEndingSoon(listings.filter((l) => l.reserve_price == null));
+      return sortByEndingSoon(
+        listings.filter((l) => l.reserve_price == null),
+        now,
+      );
     default:
       return listings;
   }
@@ -62,18 +65,28 @@ function sortListings(listings: Listing[], sort: SortOption): Listing[] {
 
 type ListingsBrowseProps = {
   listings: Listing[];
+  bidCounts?: Record<string, number>;
 };
 
-export function ListingsBrowse({ listings }: ListingsBrowseProps) {
+export function ListingsBrowse({ listings, bidCounts = {} }: ListingsBrowseProps) {
   const [category, setCategory] = useState("");
   const [sort, setSort] = useState<SortOption>("ending_soon");
 
+  // Tick every 30 s so the sort re-evaluates auction statuses as time passes
+  // (e.g. a live auction ending soon moves ahead of newly-added scheduled ones).
+  const [nowMs, setNowMs] = useState(Date.now);
+  useEffect(() => {
+    const id = setInterval(() => setNowMs(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
   const displayedListings = useMemo(() => {
+    const now = new Date(nowMs);
     const byCat = category
       ? listings.filter((l) => l.category === category)
       : listings;
-    return sortListings(byCat, sort);
-  }, [listings, category, sort]);
+    return sortListings(byCat, sort, now);
+  }, [listings, category, sort, nowMs]);
 
   return (
     <div className="flex flex-col gap-5">
@@ -134,7 +147,11 @@ export function ListingsBrowse({ listings }: ListingsBrowseProps) {
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {displayedListings.map((listing) => (
-            <ListingCard key={listing.id} listing={listing} />
+            <ListingCard
+              key={listing.id}
+              listing={listing}
+              bidCount={bidCounts[listing.id] ?? 0}
+            />
           ))}
         </div>
       )}

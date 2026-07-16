@@ -20,14 +20,26 @@ type HomeProps = {
 export default async function Home({ searchParams }: HomeProps) {
   const params = await searchParams;
 
-  const { data, error } = await supabase
-    .from("listings")
-    .select("*")
-    .eq("status", "approved")
-    .order("end_time", { ascending: true, nullsFirst: false });
+  const [{ data, error }, { data: bidRows }] = await Promise.all([
+    supabase
+      .from("listings")
+      .select("*")
+      .eq("status", "approved")
+      .order("end_time", { ascending: true, nullsFirst: false }),
+    supabase.from("bids").select("listing_id"),
+  ]);
 
   const listings = filterBrowsableListings((data ?? []) as Listing[]);
   const [featured] = listings;
+
+  // Aggregate per-listing bid counts without exposing any bidder data
+  const bidCounts = (bidRows ?? []).reduce<Record<string, number>>(
+    (acc, row) => {
+      acc[row.listing_id] = (acc[row.listing_id] ?? 0) + 1;
+      return acc;
+    },
+    {},
+  );
 
   return (
     <div className="min-h-full bg-zinc-50">
@@ -66,13 +78,16 @@ export default async function Home({ searchParams }: HomeProps) {
             {/* Featured auction */}
             {featured && (
               <section aria-label="Featured auction">
-                <FeaturedListingCard listing={featured} />
+                <FeaturedListingCard
+                  listing={featured}
+                  bidCount={bidCounts[featured.id] ?? 0}
+                />
               </section>
             )}
 
             {/* Marketplace grid */}
             <section aria-label="All listings">
-              <ListingsBrowse listings={listings} />
+              <ListingsBrowse listings={listings} bidCounts={bidCounts} />
             </section>
           </div>
         )}

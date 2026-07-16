@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import { getDisplayAuctionStatus } from "@/lib/auction";
 import { statusAfterEdit } from "@/lib/listingStatus";
 import type { Listing } from "@/lib/types/listing";
 
@@ -41,6 +42,18 @@ export function EditListingForm({ listing }: EditListingFormProps) {
       starting_price < 0
     ) {
       setError("Please fill in all required fields.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Defense-in-depth: re-check auction timing here in case the auction went
+    // live while the seller had the form open.
+    const auctionStatus = getDisplayAuctionStatus(listing);
+    if (
+      listing.status === "approved" &&
+      (auctionStatus === "live" || auctionStatus === "ended")
+    ) {
+      setError("This listing cannot be edited after the auction has started.");
       setIsSubmitting(false);
       return;
     }

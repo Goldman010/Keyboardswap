@@ -37,6 +37,11 @@ export function formatSellerLabel(sellerUsername: string | null | undefined) {
   return "Verified seller";
 }
 
+export function formatBidCount(count: number): string {
+  if (count === 1) return "1 bid";
+  return `${count} bids`;
+}
+
 export function formatRelativeTime(date: string): string {
   const diffMs = Date.now() - new Date(date).getTime();
   const seconds = Math.floor(diffMs / 1000);

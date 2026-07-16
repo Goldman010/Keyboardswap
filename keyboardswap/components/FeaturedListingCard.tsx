@@ -8,12 +8,13 @@ import {
   getStartingBid,
   parseDate,
 } from "@/lib/auction";
-import { formatPrice } from "@/lib/formatListing";
+import { formatBidCount, formatPrice } from "@/lib/formatListing";
 import { ListingPlaceholderImage } from "@/components/ListingPlaceholderImage";
 import type { Listing } from "@/lib/types/listing";
 
 type FeaturedListingCardProps = {
   listing: Listing;
+  bidCount?: number;
 };
 
 function useCountdown(targetDate: Date | null): number | null {
@@ -47,7 +48,7 @@ function formatCountdown(ms: number): string {
   return `${pad(minutes)}m ${pad(seconds)}s`;
 }
 
-export function FeaturedListingCard({ listing }: FeaturedListingCardProps) {
+export function FeaturedListingCard({ listing, bidCount = 0 }: FeaturedListingCardProps) {
   const auctionStatus = getDisplayAuctionStatus(listing);
   const endTime = parseDate(listing.end_time);
   const startTime = parseDate(listing.scheduled_start_time);
@@ -133,8 +134,11 @@ export function FeaturedListingCard({ listing }: FeaturedListingCardProps) {
             </div>
           )}
 
-          {/* Reserve */}
-          <div className="mt-auto">
+          {/* Bid count + reserve */}
+          <div className="mt-auto flex items-center justify-between gap-2">
+            <span className="text-sm font-medium text-zinc-500">
+              {formatBidCount(bidCount)}
+            </span>
             <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-600">
               {reserveLabel}
             </span>

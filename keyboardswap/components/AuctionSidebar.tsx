@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   getDisplayAuctionStatus,
   getReservePublicLabel,
@@ -8,8 +9,9 @@ import {
   parseDate,
 } from "@/lib/auction";
 import { formatDateTime, formatPrice } from "@/lib/formatListing";
-import { cardClass, secondaryButtonClass } from "@/lib/ui";
+import { alertSuccessClass, cardClass } from "@/lib/ui";
 import type { Listing } from "@/lib/types/listing";
+import { PlaceBidModal } from "@/components/PlaceBidModal";
 
 type AuctionSidebarProps = {
   listing: Listing;
@@ -56,7 +58,9 @@ function formatCountdown(ms: number): string {
 }
 
 export function AuctionSidebar({ listing, bidCount }: AuctionSidebarProps) {
+  const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const auctionStatus = getDisplayAuctionStatus(listing);
   const startTime = parseDate(listing.scheduled_start_time);
@@ -83,14 +87,18 @@ export function AuctionSidebar({ listing, bidCount }: AuctionSidebarProps) {
 
   const closeModal = useCallback(() => setModalOpen(false), []);
 
+  function handleBidSuccess() {
+    setModalOpen(false);
+    setSuccessMsg("Your bid was placed successfully.");
+    router.refresh();
+  }
+
+  // Auto-clear success banner after 5 s
   useEffect(() => {
-    if (!modalOpen) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") closeModal();
-    }
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [modalOpen, closeModal]);
+    if (!successMsg) return;
+    const id = setTimeout(() => setSuccessMsg(null), 5000);
+    return () => clearTimeout(id);
+  }, [successMsg]);
 
   return (
     <>
@@ -107,7 +115,11 @@ export function AuctionSidebar({ listing, bidCount }: AuctionSidebarProps) {
 
         {/* Status badge + countdown */}
         <div className="flex flex-col gap-3">
-          <AuctionStatusBadge status={auctionStatus} />
+          <AuctionStatusBadge
+            status={auctionStatus}
+            isExtended={listing.is_extended}
+            timeLeft={timeLeft}
+          />
 
           {timeLeft !== null && timeLeft > 0 && (
             <div className="rounded-lg bg-zinc-50 p-3 text-center">
@@ -120,6 +132,9 @@ export function AuctionSidebar({ listing, bidCount }: AuctionSidebarProps) {
             </div>
           )}
         </div>
+
+        {/* Success banner */}
+        {successMsg && <p className={alertSuccessClass}>{successMsg}</p>}
 
         {/* CTA button */}
         <BidButton
@@ -153,42 +168,12 @@ export function AuctionSidebar({ listing, bidCount }: AuctionSidebarProps) {
         </dl>
       </aside>
 
-      {/* Bidding coming soon modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <button
-            type="button"
-            aria-label="Close"
-            className="absolute inset-0 bg-zinc-900/50"
-            onClick={closeModal}
-          />
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="bid-modal-title"
-            className="relative w-full max-w-sm rounded-xl border border-zinc-200 bg-white p-6 shadow-lg"
-          >
-            <h2
-              id="bid-modal-title"
-              className="text-lg font-semibold text-zinc-900"
-            >
-              Bidding Coming Soon
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-zinc-600">
-              Bidding is coming soon.
-            </p>
-            <div className="mt-6 flex justify-end">
-              <button
-                type="button"
-                className={secondaryButtonClass}
-                onClick={closeModal}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <PlaceBidModal
+        listing={listing}
+        isOpen={modalOpen}
+        onClose={closeModal}
+        onSuccess={handleBidSuccess}
+      />
     </>
   );
 }
@@ -234,12 +219,37 @@ function BidButton({ status, onPlace }: BidButtonProps) {
   );
 }
 
+const ENDING_SOON_MS = 2 * 60 * 1000; // 2 minutes
+
 function AuctionStatusBadge({
   status,
+  isExtended,
+  timeLeft,
 }: {
   status: "scheduled" | "live" | "ended";
+  isExtended: boolean;
+  timeLeft: number | null;
 }) {
   if (status === "live") {
+    // Extended takes precedence over Ending Soon
+    if (isExtended) {
+      return (
+        <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-800">
+          <span className="h-2 w-2 rounded-full bg-amber-500" />
+          Extended
+        </span>
+      );
+    }
+
+    if (timeLeft !== null && timeLeft <= ENDING_SOON_MS) {
+      return (
+        <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-800">
+          <span className="h-2 w-2 animate-pulse rounded-full bg-amber-500" />
+          Ending Soon
+        </span>
+      );
+    }
+
     return (
       <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-800">
         <span className="h-2 w-2 rounded-full bg-emerald-500" />

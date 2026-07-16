@@ -30,6 +30,7 @@ export type Listing = {
   category: string | null;
   known_flaws: string | null;
   included_items: string | null;
+  is_extended: boolean;
 };
 
 export type NewListing = Pick<

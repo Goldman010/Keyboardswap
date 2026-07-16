@@ -19,6 +19,7 @@ export function MyListingsContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoadingListings, setIsLoadingListings] = useState(false);
   const [listings, setListings] = useState<Listing[]>([]);
+  const [bidCounts, setBidCounts] = useState<Record<string, number>>({});
   const [error, setError] = useState<string | null>(null);
   const [listingToDelete, setListingToDelete] = useState<Listing | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -38,19 +39,42 @@ export function MyListingsContent() {
         .eq("seller_id", userId)
         .order("created_at", { ascending: false });
 
-      if (!isMounted) {
-        return;
-      }
+      if (!isMounted) return;
 
       setIsLoadingListings(false);
 
       if (fetchError) {
         setError(fetchError.message);
         setListings([]);
+        setBidCounts({});
         return;
       }
 
-      setListings((data ?? []) as Listing[]);
+      const loadedListings = (data ?? []) as Listing[];
+      setListings(loadedListings);
+
+      // Fetch bid counts for this seller's listings so we can derive
+      // Sold / Unsold status without a manual DB status column update.
+      if (loadedListings.length > 0) {
+        const ids = loadedListings.map((l) => l.id);
+        const { data: bidRows } = await supabase
+          .from("bids")
+          .select("listing_id")
+          .in("listing_id", ids);
+
+        if (!isMounted) return;
+
+        const counts = (bidRows ?? []).reduce<Record<string, number>>(
+          (acc, row) => {
+            acc[row.listing_id] = (acc[row.listing_id] ?? 0) + 1;
+            return acc;
+          },
+          {},
+        );
+        setBidCounts(counts);
+      } else {
+        setBidCounts({});
+      }
     }
 
     async function loadSession() {
@@ -80,6 +104,7 @@ export function MyListingsContent() {
         loadListings(session.user.id);
       } else {
         setListings([]);
+        setBidCounts({});
         setError(null);
         setIsLoadingListings(false);
       }
@@ -204,6 +229,7 @@ export function MyListingsContent() {
           <li key={listing.id}>
             <MyListingCard
               listing={listing}
+              bidCount={bidCounts[listing.id] ?? 0}
               onDeleteClick={handleDeleteClick}
             />
           </li>

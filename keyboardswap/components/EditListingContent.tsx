@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { EditListingForm } from "@/components/EditListingForm";
+import { getDisplayAuctionStatus } from "@/lib/auction";
 import { supabase } from "@/lib/supabaseClient";
 import { alertErrorClass, cardClass, primaryButtonClass } from "@/lib/ui";
 import type { Listing } from "@/lib/types/listing";
@@ -136,6 +137,27 @@ export function EditListingContent({ listingId }: EditListingContentProps) {
       <div className={cardClass}>
         <p className="text-zinc-600">
           Listing not found or you don&apos;t have permission to edit it.
+        </p>
+        <Link
+          href="/my-listings"
+          className="mt-4 inline-block text-sm font-medium text-zinc-900 underline underline-offset-4"
+        >
+          Back to my listings
+        </Link>
+      </div>
+    );
+  }
+
+  // Block editing once the auction is live or has ended.
+  if (
+    listing.status === "approved" &&
+    (getDisplayAuctionStatus(listing) === "live" ||
+      getDisplayAuctionStatus(listing) === "ended")
+  ) {
+    return (
+      <div className={cardClass}>
+        <p className="text-zinc-600">
+          This listing cannot be edited after the auction has started.
         </p>
         <Link
           href="/my-listings"

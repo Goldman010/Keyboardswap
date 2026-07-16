@@ -137,3 +137,39 @@ export function parseDatetimeLocalValue(value: string): Date | null {
 export function listingTypeAllowsBuyItNow(listingType: ListingType): boolean {
   return listingType === "buy_it_now" || listingType === "auction_buy_it_now";
 }
+
+/**
+ * Derives a human-readable listing status from timestamps and bid count.
+ * Used on My Listings so sellers see Live / Scheduled / Sold / Unsold
+ * instead of the raw DB "approved" status, which never auto-transitions.
+ */
+export type DerivedListingStatus =
+  | "pending"
+  | "rejected"
+  | "scheduled"
+  | "live"
+  | "sold"
+  | "unsold";
+
+export function getDerivedListingStatus(
+  listing: Listing,
+  bidCount: number,
+  now: Date = new Date(),
+): DerivedListingStatus {
+  if (listing.status !== "approved") {
+    return listing.status as "pending" | "rejected";
+  }
+
+  const auctionStatus = getDisplayAuctionStatus(listing, now);
+
+  if (auctionStatus === "ended") {
+    if (bidCount === 0) return "unsold";
+    const reserveMet =
+      listing.reserve_price == null ||
+      listing.current_price >= listing.reserve_price;
+    return reserveMet ? "sold" : "unsold";
+  }
+
+  // "live" | "scheduled"
+  return auctionStatus;
+}

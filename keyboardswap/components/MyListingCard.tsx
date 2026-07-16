@@ -1,6 +1,10 @@
 import Link from "next/link";
 import type { Listing } from "@/lib/types/listing";
-import { ListingStatusBadge } from "@/components/ListingStatusBadge";
+import {
+  getDerivedListingStatus,
+  getDisplayAuctionStatus,
+  type DerivedListingStatus,
+} from "@/lib/auction";
 import { ListingPlaceholderImage } from "@/components/ListingPlaceholderImage";
 import {
   formatDateTime,
@@ -10,11 +14,38 @@ import {
 
 type MyListingCardProps = {
   listing: Listing;
+  bidCount?: number;
   onDeleteClick?: (listing: Listing) => void;
 };
 
-export function MyListingCard({ listing, onDeleteClick }: MyListingCardProps) {
+const DERIVED_STATUS_BADGE: Record<
+  DerivedListingStatus,
+  { label: string; className: string }
+> = {
+  pending:   { label: "Pending",   className: "bg-amber-100 text-amber-800" },
+  rejected:  { label: "Rejected",  className: "bg-red-100 text-red-800" },
+  scheduled: { label: "Scheduled", className: "bg-blue-100 text-blue-800" },
+  live:      { label: "Live",      className: "bg-emerald-100 text-emerald-800" },
+  sold:      { label: "Sold",      className: "bg-zinc-100 text-zinc-700" },
+  unsold:    { label: "Unsold",    className: "bg-amber-100 text-amber-800" },
+};
+
+export function MyListingCard({
+  listing,
+  bidCount = 0,
+  onDeleteClick,
+}: MyListingCardProps) {
+  const derivedStatus = getDerivedListingStatus(listing, bidCount);
+  const auctionStatus = getDisplayAuctionStatus(listing);
+
+  // Sellers cannot edit a listing once the auction is live or ended.
+  const canEdit =
+    listing.status !== "approved" ||
+    (auctionStatus !== "live" && auctionStatus !== "ended");
+
   const canDelete = listing.status !== "sold";
+
+  const { label, className } = DERIVED_STATUS_BADGE[derivedStatus];
 
   return (
     <article className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
@@ -27,7 +58,11 @@ export function MyListingCard({ listing, onDeleteClick }: MyListingCardProps) {
       <div className="flex flex-col gap-3 p-5">
         <div className="flex items-start justify-between gap-4">
           <h2 className="text-lg font-semibold text-zinc-900">{listing.title}</h2>
-          <ListingStatusBadge status={listing.status} />
+          <span
+            className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${className}`}
+          >
+            {label}
+          </span>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -39,11 +74,26 @@ export function MyListingCard({ listing, onDeleteClick }: MyListingCardProps) {
           </span>
         </div>
 
-        {listing.status === "approved" && listing.scheduled_start_time ? (
-          <p className="text-sm text-blue-800">
-            Auction starts {formatDateTime(listing.scheduled_start_time)}
-          </p>
-        ) : null}
+        {/* Auction timing info */}
+        {listing.status === "approved" && (
+          <>
+            {auctionStatus === "scheduled" && listing.scheduled_start_time && (
+              <p className="text-sm text-blue-800">
+                Starts {formatDateTime(listing.scheduled_start_time)}
+              </p>
+            )}
+            {auctionStatus === "live" && listing.end_time && (
+              <p className="text-sm text-emerald-700">
+                Ends {formatDateTime(listing.end_time)}
+              </p>
+            )}
+            {auctionStatus === "ended" && listing.end_time && (
+              <p className="text-sm text-zinc-500">
+                Ended {formatDateTime(listing.end_time)}
+              </p>
+            )}
+          </>
+        )}
 
         <div className="flex items-center justify-between gap-4 border-t border-zinc-100 pt-4">
           <span className="text-base font-semibold text-zinc-900">
@@ -51,12 +101,16 @@ export function MyListingCard({ listing, onDeleteClick }: MyListingCardProps) {
           </span>
 
           <div className="flex flex-wrap items-center justify-end gap-3">
-            <Link
-              href={`/my-listings/${listing.id}/edit`}
-              className="text-sm font-medium text-zinc-600 underline underline-offset-4 hover:text-zinc-900"
-            >
-              Edit
-            </Link>
+            {canEdit ? (
+              <Link
+                href={`/my-listings/${listing.id}/edit`}
+                className="text-sm font-medium text-zinc-600 underline underline-offset-4 hover:text-zinc-900"
+              >
+                Edit
+              </Link>
+            ) : (
+              <span className="text-sm text-zinc-300">Edit</span>
+            )}
 
             {listing.status === "approved" ? (
               <Link
