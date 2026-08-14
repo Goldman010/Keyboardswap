@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -10,8 +11,15 @@ import {
   parseDate,
 } from "@/lib/auction";
 import { formatDateTime, formatPrice } from "@/lib/formatListing";
-import { alertSuccessClass, cardClass } from "@/lib/ui";
+import { supabase } from "@/lib/supabaseClient";
+import {
+  alertSuccessClass,
+  cardClass,
+  primaryButtonClass,
+  secondaryButtonClass,
+} from "@/lib/ui";
 import type { Listing } from "@/lib/types/listing";
+import type { Order } from "@/lib/types/order";
 import { PlaceBidModal } from "@/components/PlaceBidModal";
 import { ProxyBidSection } from "@/components/ProxyBidSection";
 
@@ -124,6 +132,50 @@ export function AuctionSidebar({ listing, bidCount }: AuctionSidebarProps) {
     return () => clearTimeout(id);
   }, [successMsg]);
 
+  // Winner section: populated for ended auctions when the viewer is buyer/seller.
+  // get_my_order_for_listing is authenticated-only and returns the order only
+  // when auth.uid() matches buyer_id or seller_id — nothing leaks to others.
+  const [winnerOrder, setWinnerOrder] = useState<Order | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  // Initialise to true for ended auctions so the placeholder card shows
+  // immediately while the async session/order fetch completes, with no flicker.
+  const [winnerLoading, setWinnerLoading] = useState(isEnded);
+
+  useEffect(() => {
+    if (!isEnded) return;
+
+    let cancelled = false;
+
+    async function load() {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (cancelled) return;
+
+      const uid = session?.user.id ?? null;
+      setCurrentUserId(uid);
+
+      if (!uid) {
+        setWinnerLoading(false);
+        return;
+      }
+
+      const { data: orderData } = await supabase.rpc(
+        "get_my_order_for_listing",
+        { p_listing_id: listing.id },
+      );
+
+      if (cancelled) return;
+      setWinnerOrder((orderData as Order | null) ?? null);
+      setWinnerLoading(false);
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [isEnded, listing.id]);
+
   return (
     <>
       <aside className={`${cardClass} flex flex-col gap-5 lg:sticky lg:top-6`}>
@@ -157,13 +209,26 @@ export function AuctionSidebar({ listing, bidCount }: AuctionSidebarProps) {
           </div>
         )}
 
-        {/* Ended result card — replaces CTA area for ended auctions */}
+        {/* Ended: role-specific card for buyer/seller; public result for everyone else */}
         {isEnded ? (
-          <EndedResultCard
-            derivedStatus={derivedStatus}
-            bidCount={bidCount}
-            reserveLabel={reserveLabel}
-          />
+          winnerLoading ? (
+            // Show public result card while session/order loads (no flicker of wrong state)
+            <EndedResultCard
+              derivedStatus={derivedStatus}
+              bidCount={bidCount}
+              reserveLabel={reserveLabel}
+            />
+          ) : winnerOrder && currentUserId === winnerOrder.buyer_id ? (
+            <BuyerWonSection order={winnerOrder} />
+          ) : winnerOrder && currentUserId === winnerOrder.seller_id ? (
+            <SellerSoldSection order={winnerOrder} />
+          ) : (
+            <EndedResultCard
+              derivedStatus={derivedStatus}
+              bidCount={bidCount}
+              reserveLabel={reserveLabel}
+            />
+          )
         ) : (
           <>
             {/* Success banner */}
@@ -310,6 +375,51 @@ function AuctionStatusBadge({
     <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-zinc-100 px-3 py-1 text-sm font-medium text-zinc-600">
       Ended
     </span>
+  );
+}
+
+function BuyerWonSection({ order }: { order: Order }) {
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-4">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-xs font-bold text-white">
+            ✓
+          </span>
+          <p className="text-sm font-semibold text-emerald-800">
+            You won this auction
+          </p>
+        </div>
+        <p className="mt-2 text-lg font-bold text-emerald-900">
+          {formatPrice(order.final_price)}
+        </p>
+      </div>
+      <Link
+        href={`/orders/${order.id}`}
+        className={`${primaryButtonClass} block text-center`}
+      >
+        View Order
+      </Link>
+    </div>
+  );
+}
+
+function SellerSoldSection({ order }: { order: Order }) {
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-4">
+        <p className="text-sm font-semibold text-zinc-700">Auction sold</p>
+        <p className="mt-2 text-lg font-bold text-zinc-900">
+          {formatPrice(order.final_price)}
+        </p>
+      </div>
+      <Link
+        href={`/orders/${order.id}`}
+        className={`${secondaryButtonClass} block text-center`}
+      >
+        View Order
+      </Link>
+    </div>
   );
 }
 

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ListingDetail } from "@/components/ListingDetail";
 import { PageContainer } from "@/components/PageContainer";
 import { SiteHeader } from "@/components/SiteHeader";
+import { isListingEnded } from "@/lib/auction";
 import { supabase } from "@/lib/supabaseClient";
 import { alertErrorClass, navLinkClass } from "@/lib/ui";
 import type { Bid } from "@/lib/types/bid";
@@ -47,6 +48,14 @@ export default async function ListingPage({ params }: ListingPageProps) {
 
   const listing = listingResult.data as Listing;
   const bids = (bidsResult.data ?? []) as Bid[];
+
+  // Trigger order creation for ended listings. finalize_auction is idempotent
+  // (UNIQUE on listing_id) and SECURITY DEFINER. Its return value contains no
+  // private identifiers and is intentionally discarded here — buyer/seller
+  // discover their order client-side via get_my_order_for_listing (authenticated).
+  if (isListingEnded(listing)) {
+    await supabase.rpc("finalize_auction", { p_listing_id: id });
+  }
 
   return (
     <div className="min-h-full bg-zinc-50">
