@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
+  getDerivedListingStatus,
   getDisplayAuctionStatus,
   getReservePublicLabel,
   getStartingBid,
@@ -12,6 +13,7 @@ import { formatDateTime, formatPrice } from "@/lib/formatListing";
 import { alertSuccessClass, cardClass } from "@/lib/ui";
 import type { Listing } from "@/lib/types/listing";
 import { PlaceBidModal } from "@/components/PlaceBidModal";
+import { ProxyBidSection } from "@/components/ProxyBidSection";
 
 type AuctionSidebarProps = {
   listing: Listing;
@@ -63,6 +65,9 @@ export function AuctionSidebar({ listing, bidCount }: AuctionSidebarProps) {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const auctionStatus = getDisplayAuctionStatus(listing);
+  const derivedStatus = getDerivedListingStatus(listing, bidCount);
+  const isEnded = auctionStatus === "ended";
+
   const startTime = parseDate(listing.scheduled_start_time);
   const endTime = parseDate(listing.end_time);
 
@@ -74,6 +79,19 @@ export function AuctionSidebar({ listing, bidCount }: AuctionSidebarProps) {
         : null;
 
   const timeLeft = useCountdown(countdownTarget);
+
+  // For the price label: use "Final Price" when sold, "Starting Bid" when
+  // scheduled or no bids, "Current Bid" otherwise.
+  const priceLabel =
+    isEnded && derivedStatus === "sold"
+      ? "Final Price"
+      : isEnded && bidCount === 0
+        ? "Starting Bid"
+        : isEnded
+          ? "Highest Bid"
+          : auctionStatus === "scheduled"
+            ? "Starting Bid"
+            : "Current Bid";
 
   const currentBid =
     auctionStatus === "scheduled"
@@ -87,9 +105,15 @@ export function AuctionSidebar({ listing, bidCount }: AuctionSidebarProps) {
 
   const closeModal = useCallback(() => setModalOpen(false), []);
 
-  function handleBidSuccess() {
+  function handleBidSuccess(outbidByProxy: boolean, counterAmount: number | null) {
     setModalOpen(false);
-    setSuccessMsg("Your bid was placed successfully.");
+    if (outbidByProxy && counterAmount != null) {
+      setSuccessMsg(
+        `Your bid was placed, but a proxy bid of ${formatPrice(counterAmount)} outbid you immediately.`,
+      );
+    } else {
+      setSuccessMsg("Your bid was placed successfully.");
+    }
     router.refresh();
   }
 
@@ -103,44 +127,58 @@ export function AuctionSidebar({ listing, bidCount }: AuctionSidebarProps) {
   return (
     <>
       <aside className={`${cardClass} flex flex-col gap-5 lg:sticky lg:top-6`}>
-        {/* Current / Starting bid */}
+        {/* Price — label changes based on auction phase / outcome */}
         <div>
-          <p className="text-sm font-medium text-zinc-500">
-            {auctionStatus === "scheduled" ? "Starting Bid" : "Current Bid"}
-          </p>
+          <p className="text-sm font-medium text-zinc-500">{priceLabel}</p>
           <p className="mt-1 text-4xl font-bold tracking-tight text-zinc-900">
             {formatPrice(currentBid)}
           </p>
         </div>
 
-        {/* Status badge + countdown */}
-        <div className="flex flex-col gap-3">
-          <AuctionStatusBadge
-            status={auctionStatus}
-            isExtended={listing.is_extended}
-            timeLeft={timeLeft}
+        {/* Status badge + countdown (hidden for ended auctions) */}
+        {!isEnded && (
+          <div className="flex flex-col gap-3">
+            <AuctionStatusBadge
+              status={auctionStatus}
+              isExtended={listing.is_extended}
+              timeLeft={timeLeft}
+            />
+
+            {timeLeft !== null && timeLeft > 0 && (
+              <div className="rounded-lg bg-zinc-50 p-3 text-center">
+                <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+                  {auctionStatus === "live" ? "Time Remaining" : "Starts In"}
+                </p>
+                <p className="mt-1 font-mono text-2xl font-semibold tabular-nums text-zinc-900">
+                  {formatCountdown(timeLeft)}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Ended result card — replaces CTA area for ended auctions */}
+        {isEnded ? (
+          <EndedResultCard
+            derivedStatus={derivedStatus}
+            bidCount={bidCount}
+            reserveLabel={reserveLabel}
           />
+        ) : (
+          <>
+            {/* Success banner */}
+            {successMsg && <p className={alertSuccessClass}>{successMsg}</p>}
 
-          {timeLeft !== null && timeLeft > 0 && (
-            <div className="rounded-lg bg-zinc-50 p-3 text-center">
-              <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-                {auctionStatus === "live" ? "Time Remaining" : "Starts In"}
-              </p>
-              <p className="mt-1 font-mono text-2xl font-semibold tabular-nums text-zinc-900">
-                {formatCountdown(timeLeft)}
-              </p>
-            </div>
-          )}
-        </div>
+            {/* CTA button */}
+            <BidButton
+              status={auctionStatus}
+              onPlace={() => setModalOpen(true)}
+            />
 
-        {/* Success banner */}
-        {successMsg && <p className={alertSuccessClass}>{successMsg}</p>}
-
-        {/* CTA button */}
-        <BidButton
-          status={auctionStatus}
-          onPlace={() => setModalOpen(true)}
-        />
+            {/* Proxy bidding — shown only for live auctions */}
+            {auctionStatus === "live" && <ProxyBidSection listing={listing} />}
+          </>
+        )}
 
         {/* Auction detail rows */}
         <dl className="flex flex-col gap-3 border-t border-zinc-100 pt-4 text-sm">
@@ -159,7 +197,7 @@ export function AuctionSidebar({ listing, bidCount }: AuctionSidebarProps) {
           )}
           {listing.end_time && (
             <SidebarRow
-              label="Ends"
+              label={isEnded ? "Ended" : "Ends"}
               value={formatDateTime(listing.end_time)}
             />
           )}
@@ -168,12 +206,14 @@ export function AuctionSidebar({ listing, bidCount }: AuctionSidebarProps) {
         </dl>
       </aside>
 
-      <PlaceBidModal
-        listing={listing}
-        isOpen={modalOpen}
-        onClose={closeModal}
-        onSuccess={handleBidSuccess}
-      />
+      {!isEnded && (
+        <PlaceBidModal
+          listing={listing}
+          isOpen={modalOpen}
+          onClose={closeModal}
+          onSuccess={handleBidSuccess}
+        />
+      )}
     </>
   );
 }
@@ -270,6 +310,39 @@ function AuctionStatusBadge({
     <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-zinc-100 px-3 py-1 text-sm font-medium text-zinc-600">
       Ended
     </span>
+  );
+}
+
+function EndedResultCard({
+  derivedStatus,
+  bidCount,
+  reserveLabel,
+}: {
+  derivedStatus: ReturnType<typeof getDerivedListingStatus>;
+  bidCount: number;
+  reserveLabel: string;
+}) {
+  if (derivedStatus === "sold") {
+    return (
+      <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-4">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-xs text-white font-bold">
+            ✓
+          </span>
+          <p className="text-sm font-semibold text-emerald-800">Sold</p>
+        </div>
+        <p className="mt-1.5 text-xs text-emerald-700">{reserveLabel}</p>
+      </div>
+    );
+  }
+
+  // Unsold — distinguish between no bids and reserve not met
+  const reason = bidCount === 0 ? "No bids received." : "Reserve not met.";
+  return (
+    <div className="rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-4">
+      <p className="text-sm font-semibold text-zinc-600">Unsold</p>
+      <p className="mt-1.5 text-xs text-zinc-500">{reason}</p>
+    </div>
   );
 }
 

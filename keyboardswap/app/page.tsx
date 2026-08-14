@@ -20,26 +20,34 @@ type HomeProps = {
 export default async function Home({ searchParams }: HomeProps) {
   const params = await searchParams;
 
-  const [{ data, error }, { data: bidRows }] = await Promise.all([
-    supabase
-      .from("listings")
-      .select("*")
-      .eq("status", "approved")
-      .order("end_time", { ascending: true, nullsFirst: false }),
-    supabase.from("bids").select("listing_id"),
-  ]);
+  // Fetch all approved listings — active and ended — so the browse
+  // component can filter into Active / Sold / Unsold views client-side.
+  const { data, error } = await supabase
+    .from("listings")
+    .select("*")
+    .eq("status", "approved")
+    .order("end_time", { ascending: true, nullsFirst: false });
 
-  const listings = filterBrowsableListings((data ?? []) as Listing[]);
-  const [featured] = listings;
+  const allApproved = (data ?? []) as Listing[];
+  const activeListings = filterBrowsableListings(allApproved);
 
-  // Aggregate per-listing bid counts without exposing any bidder data
-  const bidCounts = (bidRows ?? []).reduce<Record<string, number>>(
-    (acc, row) => {
-      acc[row.listing_id] = (acc[row.listing_id] ?? 0) + 1;
-      return acc;
-    },
-    {},
-  );
+  // Bid counts for every approved listing in one RPC call.
+  const bidCounts: Record<string, number> = {};
+  const allIds = allApproved.map((l) => l.id);
+
+  if (allIds.length > 0) {
+    const { data: bidCountRows } = await supabase.rpc(
+      "get_listing_bid_counts",
+      { p_listing_ids: allIds },
+    );
+
+    for (const row of bidCountRows ?? []) {
+      bidCounts[row.listing_id] = Number(row.bid_count);
+    }
+  }
+
+  // Featured listing is always the first active (non-ended) listing.
+  const [featured] = activeListings;
 
   return (
     <div className="min-h-full bg-zinc-50">
@@ -71,11 +79,11 @@ export default async function Home({ searchParams }: HomeProps) {
           <div className={alertErrorClass}>
             Could not load listings: {error.message}
           </div>
-        ) : listings.length === 0 ? (
+        ) : allApproved.length === 0 ? (
           <EmptyListings message="No keyboards are currently listed." />
         ) : (
           <div className="flex flex-col gap-8">
-            {/* Featured auction */}
+            {/* Featured auction — active listings only */}
             {featured && (
               <section aria-label="Featured auction">
                 <FeaturedListingCard
@@ -85,9 +93,9 @@ export default async function Home({ searchParams }: HomeProps) {
               </section>
             )}
 
-            {/* Marketplace grid */}
+            {/* Marketplace grid — Active / Sold / Unsold tabs */}
             <section aria-label="All listings">
-              <ListingsBrowse listings={listings} bidCounts={bidCounts} />
+              <ListingsBrowse listings={allApproved} bidCounts={bidCounts} />
             </section>
           </div>
         )}

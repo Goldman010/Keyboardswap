@@ -17,15 +17,23 @@ export function getMinimumBid(listing: Listing): number {
 }
 
 export type PlaceBidResult =
-  | { success: true; bidId: string; amount: number }
+  | {
+      success: true;
+      bidId: string;
+      amount: number;
+      /** True when a competing proxy immediately outbid the manual bid. */
+      outbidByProxy: boolean;
+      /** The proxy counter amount when outbidByProxy is true, null otherwise. */
+      counterAmount: number | null;
+    }
   | { success: false; error: string };
 
 /**
  * Calls the place_bid Postgres RPC.
  *
  * The RPC raises user-friendly exception messages that are safe to display
- * directly to the user (e.g. "Auction has ended.", "You must be logged in.").
- * Only falls back to a generic message for unexpected low-level errors.
+ * directly to the user. Only falls back to a generic message for unexpected
+ * low-level errors.
  */
 export async function placeBid(
   listingId: string,
@@ -37,8 +45,6 @@ export async function placeBid(
   });
 
   if (error) {
-    // PostgREST may prefix the message with "ERROR: " — strip it so we can
-    // display the user-friendly text from RAISE EXCEPTION verbatim.
     const raw = error.message ?? "";
     const message =
       raw.replace(/^ERROR:\s+/i, "").trim() ||
@@ -46,6 +52,18 @@ export async function placeBid(
     return { success: false, error: message };
   }
 
-  const result = data as { bid_id: string; amount: number };
-  return { success: true, bidId: result.bid_id, amount: result.amount };
+  const result = data as {
+    bid_id: string;
+    amount: number;
+    outbid_by_proxy?: boolean;
+    counter_amount?: number | null;
+  };
+
+  return {
+    success: true,
+    bidId: result.bid_id,
+    amount: result.amount,
+    outbidByProxy: result.outbid_by_proxy ?? false,
+    counterAmount: result.counter_amount ?? null,
+  };
 }

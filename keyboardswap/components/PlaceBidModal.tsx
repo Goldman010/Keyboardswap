@@ -17,8 +17,12 @@ type PlaceBidModalProps = {
   listing: Listing;
   isOpen: boolean;
   onClose: () => void;
-  /** Called after a successful bid so the parent can refresh listing data. */
-  onSuccess: () => void;
+  /**
+   * Called after a successful bid.
+   * outbidByProxy — true when a proxy immediately counter-bid.
+   * counterAmount — the proxy counter amount when outbidByProxy is true.
+   */
+  onSuccess: (outbidByProxy: boolean, counterAmount: number | null) => void;
 };
 
 // Outer gate: returning null unmounts the inner component, giving it fresh
@@ -95,7 +99,7 @@ function BidModalContent({ listing, onClose, onSuccess }: PlaceBidModalProps) {
       return;
     }
 
-    onSuccess();
+    onSuccess(result.outbidByProxy, result.counterAmount);
   }
 
   return (

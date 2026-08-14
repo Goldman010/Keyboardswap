@@ -7,6 +7,7 @@ import {
 } from "@/components/AuctionTimingBadge";
 import type { Listing } from "@/lib/types/listing";
 import {
+  getDerivedListingStatus,
   getDisplayAuctionStatus,
   getStartingBid,
   parseDate,
@@ -69,6 +70,8 @@ function formatCardCountdown(ms: number): string {
 
 export function ListingCard({ listing, bidCount = 0 }: ListingCardProps) {
   const auctionStatus = getDisplayAuctionStatus(listing);
+  const derivedStatus = getDerivedListingStatus(listing, bidCount);
+
   const displayPrice =
     auctionStatus === "scheduled"
       ? getStartingBid(listing)
@@ -76,6 +79,9 @@ export function ListingCard({ listing, bidCount = 0 }: ListingCardProps) {
 
   const endTime = parseDate(listing.end_time);
   const timeLeft = useCountdown(auctionStatus === "live" ? endTime : null);
+
+  const isEnded = auctionStatus === "ended";
+  const isSold = derivedStatus === "sold";
 
   return (
     <Link
@@ -99,12 +105,30 @@ export function ListingCard({ listing, bidCount = 0 }: ListingCardProps) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <AuctionTimingBadge listing={listing} />
-          {/* Live countdown: show timer while time remains, then fall back to listed date */}
+          {isEnded ? (
+            // Sold / Unsold badge replaces the live/scheduled timing badge
+            isSold ? (
+              <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-800">
+                Sold
+              </span>
+            ) : (
+              <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-500">
+                Unsold
+              </span>
+            )
+          ) : (
+            <AuctionTimingBadge listing={listing} />
+          )}
+
+          {/* Countdown for live, or ended/listed date */}
           {auctionStatus === "live" && timeLeft !== null && timeLeft > 0 ? (
             <span className="font-mono text-sm tabular-nums text-zinc-500">
               {formatCardCountdown(timeLeft)}
             </span>
+          ) : isEnded && listing.end_time ? (
+            <p className="text-sm text-zinc-500">
+              Ended {formatListedDate(listing.end_time)}
+            </p>
           ) : (
             <p className="text-sm text-zinc-500">
               Listed {formatListedDate(listing.created_at)}
@@ -114,14 +138,18 @@ export function ListingCard({ listing, bidCount = 0 }: ListingCardProps) {
 
         <div className="mt-auto flex items-center justify-between gap-4 border-t border-zinc-100 pt-4 text-sm">
           <span className="text-zinc-500">
-            {auctionStatus === "live" && listing.end_time
-              ? `Ends ${formatListedDate(listing.end_time)}`
-              : formatListedDate(listing.created_at)}
+            {isEnded && listing.end_time
+              ? `Ended ${formatListedDate(listing.end_time)}`
+              : auctionStatus === "live" && listing.end_time
+                ? `Ends ${formatListedDate(listing.end_time)}`
+                : formatListedDate(listing.created_at)}
           </span>
           <div className="flex items-center gap-3">
             <span className="text-zinc-400">{formatBidCount(bidCount)}</span>
             <span className="text-base font-semibold text-zinc-900">
-              {auctionStatus === "scheduled" ? (
+              {isEnded && isSold ? (
+                formatPrice(displayPrice)
+              ) : auctionStatus === "scheduled" ? (
                 <>Starting {formatPrice(displayPrice)}</>
               ) : (
                 formatPrice(displayPrice)

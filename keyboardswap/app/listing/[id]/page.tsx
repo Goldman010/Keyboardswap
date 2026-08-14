@@ -12,10 +12,6 @@ type ListingPageProps = {
   params: Promise<{ id: string }>;
 };
 
-// Columns explicitly listed so proxy_max_amount is never sent to the client.
-const BID_PUBLIC_COLUMNS =
-  "id, listing_id, bidder_id, amount, is_proxy_bid, created_at" as const;
-
 export default async function ListingPage({ params }: ListingPageProps) {
   const { id } = await params;
 
@@ -26,11 +22,9 @@ export default async function ListingPage({ params }: ListingPageProps) {
       .eq("id", id)
       .eq("status", "approved")
       .maybeSingle(),
-    supabase
-      .from("bids")
-      .select(BID_PUBLIC_COLUMNS)
-      .eq("listing_id", id)
-      .order("created_at", { ascending: false }),
+    // get_listing_bids returns anonymous bid history (no bidder_id, no proxy_max_amount).
+    // Direct SELECT on the bids table is not permitted for anon/authenticated.
+    supabase.rpc("get_listing_bids", { p_listing_id: id }),
   ]);
 
   if (listingResult.error) {

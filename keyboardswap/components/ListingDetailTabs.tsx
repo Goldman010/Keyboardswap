@@ -151,21 +151,6 @@ function SpecRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-// Returns a stable mapping of bidder_id → sequential number,
-// based on the order each bidder first appears (earliest bid first).
-function buildBidderNumbers(bids: Bid[]): Map<string, number> {
-  const sorted = [...bids].sort(
-    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
-  );
-  const map = new Map<string, number>();
-  for (const bid of sorted) {
-    if (!map.has(bid.bidder_id)) {
-      map.set(bid.bidder_id, map.size + 1);
-    }
-  }
-  return map;
-}
-
 function BidHistoryTab({ bids }: { bids: Bid[] }) {
   if (bids.length === 0) {
     return (
@@ -178,8 +163,6 @@ function BidHistoryTab({ bids }: { bids: Bid[] }) {
       </div>
     );
   }
-
-  const bidderNumbers = buildBidderNumbers(bids);
 
   return (
     <div>
@@ -197,9 +180,14 @@ function BidHistoryTab({ bids }: { bids: Bid[] }) {
               <span className="text-sm text-zinc-400">
                 {formatRelativeTime(bid.created_at)}
               </span>
+              {bid.is_proxy_bid && (
+                <span className="rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-500">
+                  proxy
+                </span>
+              )}
             </div>
             <span className="shrink-0 text-sm font-medium text-zinc-500">
-              Bidder #{bidderNumbers.get(bid.bidder_id)}
+              Bidder #{bid.bidder_number}
             </span>
           </li>
         ))}

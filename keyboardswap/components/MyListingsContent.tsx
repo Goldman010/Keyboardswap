@@ -53,24 +53,21 @@ export function MyListingsContent() {
       const loadedListings = (data ?? []) as Listing[];
       setListings(loadedListings);
 
-      // Fetch bid counts for this seller's listings so we can derive
-      // Sold / Unsold status without a manual DB status column update.
+      // Fetch bid counts via the safe RPC (direct bids SELECT is not permitted).
       if (loadedListings.length > 0) {
         const ids = loadedListings.map((l) => l.id);
-        const { data: bidRows } = await supabase
-          .from("bids")
-          .select("listing_id")
-          .in("listing_id", ids);
+        const { data: bidCountRows } = await supabase.rpc(
+          "get_listing_bid_counts",
+          { p_listing_ids: ids },
+        );
 
         if (!isMounted) return;
 
-        const counts = (bidRows ?? []).reduce<Record<string, number>>(
-          (acc, row) => {
-            acc[row.listing_id] = (acc[row.listing_id] ?? 0) + 1;
-            return acc;
-          },
-          {},
-        );
+        const counts: Record<string, number> = {};
+        for (const row of bidCountRows ?? []) {
+          const r = row as { listing_id: string; bid_count: number };
+          counts[r.listing_id] = Number(r.bid_count);
+        }
         setBidCounts(counts);
       } else {
         setBidCounts({});
