@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ListingPlaceholderImage } from "@/components/ListingPlaceholderImage";
 import {
@@ -30,6 +29,7 @@ import type { Listing } from "@/lib/types/listing";
 
 type AdminPendingListingRowProps = {
   listing: Listing;
+  onReviewed: () => void;
 };
 
 function getDefaultStartTime(): Date {
@@ -39,8 +39,7 @@ function getDefaultStartTime(): Date {
   return start;
 }
 
-export function AdminPendingListingRow({ listing }: AdminPendingListingRowProps) {
-  const router = useRouter();
+export function AdminPendingListingRow({ listing, onReviewed }: AdminPendingListingRowProps) {
   const [error, setError] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [listingType, setListingType] = useState<ListingType>(
@@ -75,11 +74,13 @@ export function AdminPendingListingRow({ listing }: AdminPendingListingRowProps)
     setError(null);
     setIsUpdating(true);
 
-    const { error: updateError } = await supabase
+    const { data, error: updateError } = await supabase
       .from("listings")
       .update({ status: "rejected" })
       .eq("id", listing.id)
-      .eq("status", "pending");
+      .eq("status", "pending")
+      .select("id")
+      .maybeSingle();
 
     setIsUpdating(false);
 
@@ -88,7 +89,12 @@ export function AdminPendingListingRow({ listing }: AdminPendingListingRowProps)
       return;
     }
 
-    router.refresh();
+    if (!data) {
+      setError("This listing is no longer available for review.");
+      return;
+    }
+
+    onReviewed();
   }
 
   async function approveAndSchedule(event: React.FormEvent<HTMLFormElement>) {
@@ -144,7 +150,7 @@ export function AdminPendingListingRow({ listing }: AdminPendingListingRowProps)
       return;
     }
 
-    const { error: updateError } = await supabase
+    const { data, error: updateError } = await supabase
       .from("listings")
       .update({
         status: "approved",
@@ -160,7 +166,9 @@ export function AdminPendingListingRow({ listing }: AdminPendingListingRowProps)
         auction_status: "scheduled",
       })
       .eq("id", listing.id)
-      .eq("status", "pending");
+      .eq("status", "pending")
+      .select("id")
+      .maybeSingle();
 
     setIsUpdating(false);
 
@@ -169,7 +177,12 @@ export function AdminPendingListingRow({ listing }: AdminPendingListingRowProps)
       return;
     }
 
-    router.refresh();
+    if (!data) {
+      setError("This listing is no longer available for review.");
+      return;
+    }
+
+    onReviewed();
   }
 
   return (
