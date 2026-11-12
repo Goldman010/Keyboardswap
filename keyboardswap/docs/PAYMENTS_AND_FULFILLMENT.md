@@ -6,31 +6,36 @@ Seller does not receive funds immediately.
 Seller ships only after payment is confirmed.
 Seller provides tracking.
 Buyer confirms delivery, or the order automatically completes after a defined period following delivery.
-Seller payout happens after successful delivery/completion.
+Seller proceeds become eligible for transfer after carrier-confirmed delivery and a full 48-hour inspection window, with no open dispute or fraud hold.
 If buyer never pays, order becomes something like payment_expired; seller can potentially offer it to the next-highest bidder later.
 Platform fee should be taken from the seller's proceeds rather than added as a surprise buyer fee.
-Shipping should probably be seller-defined initially rather than us trying to calculate labels/rates immediately.
+KeyboardSwap provides the only supported shipping-label purchase flow. The buyer pays the disclosed shipping charge at checkout.
 Disputes/refunds remain manually administered for the MVP.
 Seller gets 5 days after payment to ship and provide tracking
 
 
+## Minimum listing value
+
+- New listings must start at $50 for auctions or have a fixed purchase price of at least $50. For hybrid listings, the opening bid and Buy It Now price must each meet the minimum.
+- Apply the floor to item price in USD before shipping and tax. Validate in seller submission and edit, admin approval, and authoritative database writes.
+- Approval question: Does a $50 reserve ever permit an opening bid below $50? The proposed interpretation is a hard $50 opening bid. Confirm before implementing. Proposed legacy treatment is to keep existing orders and in-progress auctions intact and enforce the floor on new or re-approved listings.
+
 ## Shipping
 
-- Shipping terms must be disclosed before an auction begins.
-- Sellers choose the shipping method and cost when creating the listing.
-- MVP shipping options:
-  - Free shipping
-  - Flat-rate shipping
-- Shipping terms become locked when the auction goes live.
-- Sellers cannot change the shipping price after the auction begins.
-- Listings clearly display the shipping cost alongside the current bid.
-- Bid confirmation shows the bidder:
-  - Bid amount
-  - Shipping cost
-  - Estimated total if they win
-- After an auction is completed, the seller provides shipment and tracking information. They do not set a new shipping price.
-- MVP shipping is limited to the United States.
-- Calculated shipping rates and integrated shipping labels may be added later.
+- Start with domestic US shipments. The seller provides the ship-from address and package dimensions and weight before approval. Disclose the shipping charge before bidding and lock the terms when the auction goes live.
+- Show item price or proposed bid, shipping, and the buyer total before bid confirmation and again at checkout. Label pre-bid totals as estimates where tax depends on destination, then show the exact total before payment.
+- After verified payment, the seller purchases the label in KeyboardSwap. The platform submits the validated checkout address and required services to the shipping provider. Persist the provider shipment ID, label and tracking association. Seller-entered tracking and post-start shipping price changes are disallowed.
+- At checkout, snapshot the agreed shipping charge and checkout address. Keep actual carrier cost separate from the buyer charge. Approval question: confirm who absorbs differences, carrier adjustments and any label void fees. The proposed MVP uses a disclosed flat buyer charge with KeyboardSwap absorbing differences during a capped pilot.
+- Provide the buyer and seller with shipment status using authenticated provider updates and reconciliation. The seller has five days after payment confirmation to ship and provide a carrier acceptance scan. A purchased label alone does not establish shipment.
+
+| Final item value | Required shipping protection |
+| --- | --- |
+| Below $200 | KeyboardSwap label and carrier tracking |
+| $200 to below $500 | Platform label, tracking and full-value insurance |
+| $500 to below $750 | Platform label, tracking, full-value insurance and signature confirmation |
+| $750 or more | All of the above and additional fraud screening |
+
+Use the winning bid or fixed item price before shipping and tax for the tier. Block label release if a required service or full insurance cannot be confirmed. For the pilot, propose manual admin clearance at $750 or more, with Stripe risk signals where available. Do not collect unnecessary identity documents.
 
 ## Delivery Confirmation and Missing Packages
 
@@ -38,7 +43,7 @@ Seller gets 5 days after payment to ship and provide tracking
 - Shipment tracking is associated with the order.
 - When tracking reports delivery, the buyer receives a limited review period before the transaction automatically completes.
 - MVP review period: 48 hours after confirmed delivery.
-- The buyer may confirm receipt early, which completes the transaction sooner.
+- The buyer may confirm receipt early as evidence. Transfer eligibility still requires carrier-confirmed delivery and the full 48-hour window.
 - If the buyer reports that the item was not received, the transaction enters Disputed status and seller payout is paused.
 - Disputes are manually reviewed by KeyboardSwap during the MVP.
 
@@ -55,7 +60,7 @@ KeyboardSwap may consider:
 
 If tracking does not show successful delivery, the buyer is generally eligible for a refund.
 
-If evidence supports successful delivery to the correct destination, KeyboardSwap may resolve the transaction in favor of the seller.
+Carrier-confirmed delivery tied to the verified checkout address generally supports the seller in an ordinary item-not-received dispute, subject to evidence review. An unsupported buyer claim does not automatically trigger a refund.
 
 Seller payment remains on hold while a delivery dispute is under review.
 
@@ -84,8 +89,7 @@ If a shipment is determined to be lost in transit:
 ### Seller Protection
 
 - Sellers are strongly encouraged to purchase shipping insurance covering the full transaction value.
-- KeyboardSwap may require insurance for transactions above a defined value.
-- KeyboardSwap may require signature confirmation for high-value transactions.
+- The shipping protection table specifies mandatory insurance and signature confirmation.
 - Failure to purchase recommended or required insurance may leave the seller responsible for a carrier loss that exceeds the carrier's included coverage.
 
 ### Buyer Protection
@@ -113,7 +117,7 @@ Sellers are responsible for accurately describing the item, including known defe
 
 - Buyers have 48 hours after confirmed delivery to inspect the item and report a significant problem.
 - The buyer may confirm that the item was received as expected before the review period expires.
-- If no issue is reported during the review period, the transaction may automatically complete and seller payout may be released.
+- If no issue is reported during the review period, the transaction may complete and become eligible for transfer.
 - Problems that could not reasonably have been discovered during the initial inspection may be reviewed individually by KeyboardSwap.
 
 ### Item Not as Described
@@ -284,20 +288,14 @@ MVP cancellation and refund requests are reviewed manually.
 - Payment-processing fees and refund-related fees will follow the rules of the payment provider and will be disclosed before launch.
 
 
-## Seller Payout
+## Stripe payments, transfers and disputes
 
-Seller funds become eligible for payout when:
-- Carrier tracking confirms delivery and the 48-hour buyer review period expires without a dispute; or
-- The buyer confirms successful receipt before the review period expires.
-
-Seller payout is paused when:
-- A transaction is disputed.
-- A missing-package claim is open.
-- A damage/not-as-described claim is open.
-- KeyboardSwap identifies another transaction issue requiring review.
-
-KeyboardSwap will use its payment provider's marketplace payout infrastructure. KeyboardSwap will not independently operate an informal escrow system.
-
+- Use Stripe Checkout with separate charges and transfers. Start with test-mode USD card payments. Create checkout server-side for the winning buyer using the immutable order amount and disclosed shipping charge. Use verified Stripe webhooks to record payment. Keep the 24-hour payment deadline and handle expiration, duplicate events, and payment/expiration races.
+- After carrier-confirmed delivery and a full 48-hour inspection window, seller proceeds are eligible for transfer only if no dispute, refund, or fraud hold is active. Record the Stripe charge and transfer IDs and reconcile separately from the seller's bank payout.
+- Pause pending transfers on internal disputes and Stripe payment disputes. Give admins an evidence view, communications log, decision history, and controls to record refunds, submit or track Stripe dispute evidence, and resolve the hold. Handle refunds and disputes manually for the MVP. A dispute after transfer requires reconciliation and may require a transfer reversal.
+- Retain the normalized checkout address, Stripe payment references, order and shipping disclosures, carrier tracking history and delivery timestamps, signature proof where required, and relevant communications. Restrict access, audit evidence access, and set retention based on payment dispute and legal requirements. Do not store full card numbers or security codes.
+- Carrier evidence supports review. It does not guarantee a favorable payment dispute outcome. The 48-hour internal inspection window does not limit later card chargebacks.
+- Before implementing delayed transfers, verify the applicable Stripe platform balance and payout configuration, source-charge transfer requirements, and maximum time from charge to transfer for the actual US Connect account, including long disputes. Stripe's published US two-year manual bank-payout limit is a different mechanism. Obtain qualified US legal review of the funds flow, federal and state money-transmission obligations, seller agreements, and tax responsibilities before accepting live payments.
 
 ## Taxes
 
