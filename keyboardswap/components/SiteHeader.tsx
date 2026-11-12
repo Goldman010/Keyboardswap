@@ -10,6 +10,7 @@ const NAV_LINKS = [
   { href: "/listings", label: "Browse" },
   { href: "/submit", label: "Sell" },
   { href: "/my-listings", label: "My Listings" },
+  { href: "/orders", label: "My Orders" },
   { href: "/admin", label: "Admin" },
 ] as const;
 
