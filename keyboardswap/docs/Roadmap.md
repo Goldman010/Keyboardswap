@@ -70,14 +70,27 @@ Launch a trustworthy marketplace where users can buy and sell keyboard-related i
 Goal:
 Create a trusted buying experience.
 
-## Orders
+## Orders, checkout and shipping rollout
 
-- Winning bidder workflow
-- Checkout
-- Stripe integration
-- Escrow support
-- Shipping tracking
-- Transaction history
+Requirements are in [Payments and Fulfillment](PAYMENTS_AND_FULFILLMENT.md). Implementation requires approval of this plan and the open pricing decisions.
+
+1. **Listing and order terms.** Validate the $50 floor in forms, admin approval and database writes. Record package details and disclosed shipping charges, lock terms at auction start, show bid totals, and snapshot the winning price and shipping terms when an order is created. Preserve auction logic, seller onboarding, and existing test orders. Make closing and payment deadlines reliable even without page visits.
+2. **Test checkout.** Reuse the Stripe server client, seller Connect onboarding, and My Orders. Add buyer-only checkout using server-owned totals and a validated US destination, a reusable payment session, and signed, idempotent webhooks. Test wrong buyer, failed or late payment, retries, and concurrent checkout attempts. Keep seller transfers disabled.
+3. **Platform labels and basic fraud protection.** Integrate EasyPost Wallet behind a narrow server module, starting with a small domestic carrier/service allowlist. Generate labels only for paid, cleared orders. Enforce protection tiers, keep tracking provider-owned, ingest verified tracking updates, and reconcile missed or out-of-order events. Test supported insurance and signatures with real carrier quotes before pilot launch. Add admin review for $750+ orders and an evidence and dispute queue.
+4. **Delayed seller transfers and pilot.** After Stripe and legal signoff, add an idempotent transfer process, balance and dispute reconciliation, and admin exception handling. Verify that missed events, duplicate requests, and open disputes do not release funds. Run the full flow in test mode before any limited live pilot.
+
+### Codebase impact
+
+- Listing creation, editing, and admin scheduling currently validate prices independently. Update all three and add a database guard for price and shipping invariants.
+- Bid and proxy-bid dialogs have no structured shipping charge. Extend their existing totals and the listing detail presentation.
+- The auction finalization migration writes the winning item price and pending-payment order. Add immutable terms and a deadline while preserving its existing order uniqueness and participant access rules.
+- Order detail currently has payment and shipping placeholders. Extend it for checkout, label purchase and tracking. Reuse My Orders and the seller Connect endpoints. Add separate server endpoints for signed payment and shipping events and admin-only dispute actions.
+
+### Provider and cost assumptions
+
+Recommend [EasyPost Wallet](https://www.easypost.com/pricing/) for the US-only pilot. Wallet includes the label API fee for up to 3,000 labels per month, with postage billed separately and tracking included with eligible EasyPost labels. Verify multi-seller use and actual USPS/UPS rates, insurance eligibility and supported signature services before committing. Keep [Shippo API Starter](https://goshippo.com/pricing/api) as the fallback. It includes the API fee for 30 labels per month, then charges $0.07 per label, with separate charges for some API services.
+
+Budget for postage, insurance, signature fees, address checks where billed, carrier adjustments, Stripe card processing, applicable Connect account/payout fees, and dispute costs. EasyPost publishes 1% declared-value insurance with a $1 minimum. Stripe lists standard US domestic card processing at 2.9% plus $0.30. Exact label and signature costs depend on the service and shipment.
 
 ## Ratings
 
